@@ -101,11 +101,12 @@ var BubiInterface = React.createClass({
 			stations: null,
 			userLocation: null,
 			stationView: null,
+			updateTime: null,
 		};
 	},
 
-	setStations: function(stations) {
-		this.setState({ stations: stations });
+	setStations: function(stations, updateTime) {
+		this.setState({ stations: stations, updateTime: updateTime });
 	},
 
 	setUserLocation: function(loc) {
@@ -192,10 +193,10 @@ var BubiInterface = React.createClass({
 });
 
 var bubi = React.renderComponent(BubiInterface(), document.getElementById('react_container'))
-getStations(function(stations) {
-	bubi.setStations(stations);
+getStations(function(stations, time) {
+	bubi.setStations(stations, time);
 	addDistanceToStations(stations, function(sorted_stations, userLocation) {
-		bubi.setStations(sorted_stations);
+		bubi.setStations(sorted_stations, time);
 		bubi.setUserLocation(userLocation);
 	});
 });
@@ -242,6 +243,7 @@ function getPrettyDistance(dist_km) {
 
 
 function getStations(callback) {
+	var time = new Date();
 	getBubiData(function(cityXml) {
 		var stations = [];
 		for (var i=0; i < cityXml.childNodes.length; i++) {
@@ -263,7 +265,7 @@ function getStations(callback) {
 			return (a.name < b.name) ? -1 : 1;
 		});
 
-		callback(stations);
+		callback(stations, time);
 	});
 }
 
