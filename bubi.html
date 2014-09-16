@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<head>
+<title>Bubi van?</title>
+<meta name="viewport" content="width=320; user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<style>
+
+body {
+	margin: 0;
+	padding: 0;
+}
+
+.container {
+	width: 100%;
+	height: 100%;
+	font-family: sans-serif;
+	font-weight: 200;
+}
+
+.station_list {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.list_item_container {
+	background-color: #A0CD64;
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: row;
+	-webkit-flex-direction: row;
+	justify-content: space-between;
+	-webkit-justify-content: space-between;
+	align-items: center;
+	-webkit-align-items: center;
+
+	border-width: 0 0 1px;
+	border-color: white;
+	border-style: solid;
+
+	padding: 3px 6px;
+	cursor: pointer;
+}
+
+.list_item_no_bikes {
+	background-color: gray;
+	opacity: 0.5;
+}
+
+.list_item_few_bikes {
+	background-color: #E6CD64;
+}
+
+.num_bikes {
+	font-size: 30px;
+	flex-shrink: 0;
+	-webkit-flex-shrink: 0;
+}
+
+.name_group {
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: column;
+	-webkit-flex-direction: column;
+}
+
+.station_name {
+	flex-shrink: 1;
+	-webkit-flex-shrink: 1;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.station_dist {
+	font-size: 75%;
+}
+
+.bike_image {
+	height: 15px;
+	padding-left: 3px;
+}
+</style>
+
+<script src="http://fb.me/react-with-addons-0.11.1.min.js"></script>
+</head>
+<body>
+<div id='react_container'></div>
+
+<script>
+
+React.initializeTouchEvents(true);
+var classSet = React.addons.classSet;
+var DOM = React.DOM;
+var BubiInterface = React.createClass({
+	getInitialState: function() {
+		return {
+			stations: null,
+			userLocation: null,
+			stationView: null,
+		};
+	},
+
+	setStations: function(stations) {
+		this.setState({ stations: stations });
+	},
+
+	setUserLocation: function(loc) {
+		this.setState({ userLocation: loc });
+	},
+
+	setStationView: function(id) {
+		this.setState({ stationView: id });
+	},
+
+	render: function() {
+		if (this.state.stations == null) {
+			return DOM.div(null, "Loading...");
+		}
+		else if (this.state.stationView != null && this.state.stations != null) {
+			var map_origin = "Budapest";
+			var map_dest = "Budapest";
+
+			if (this.state.userLocation != null) {
+				map_origin = this.state.userLocation.lat + "," + this.state.userLocation.lng;
+			}
+			
+			var self = this;
+			var selected = this.state.stations.filter(
+				function(x) { 
+					return x.uid == self.state.stationView 
+				});
+			if (selected.length == 1) {
+				map_dest = selected[0].lat + "," + selected[0].lng;
+			}
+
+			return DOM.div({ className: "container" },
+					DOM.iframe({
+						width: '100%',
+						height: '100%',
+						seamless: true,
+						frameBorder: 0,
+						src: "https://www.google.com/maps/embed/v1/directions?key=AIzaSyA1ko9DhkUQvO2N7mIwroQqFJ8ax1aRP6g&origin=" + map_origin + "&destination=" + map_dest + "&mode=walking",
+					}));
+		}
+		else {
+			var self = this;
+			var items = this.state.stations.map(function(s) {
+				var name_group = DOM.span({ className: "station_name" }, s.name);
+				if (s.distance != null) {
+					name_group =
+						DOM.div({ className: "name_group" },
+							DOM.span({ className: "station_name" }, s.name),
+							DOM.span({ className: "station_dist" }, getPrettyDistance(s.distance)));
+				}
+
+				return DOM.li(
+						{ className: "list_item" },
+						DOM.div(
+							{ className: classSet({
+									"list_item_container": true,
+									"list_item_no_bikes": s.num_bikes == 0,
+									"list_item_few_bikes": s.num_bikes <= 3 && s.num_bikes > 0,
+								}),
+								onClick: function() {
+									self.setStationView(s.uid);
+								},
+							},
+							name_group,
+							DOM.span(
+								{ className: "num_bikes" },
+								[
+									"" + s.num_bikes,
+									DOM.img({ 
+										src: "bike.svg",
+										className: "bike_image",
+									}),
+								]
+							)
+						)
+					);
+			});
+
+			return DOM.div({ className: "container" },
+					DOM.ul({ className: "station_list" }, items));
+		}
+	},
+});
+
+var bubi = React.renderComponent(BubiInterface(), document.getElementById('react_container'))
+getStations(function(stations) {
+	bubi.setStations(stations);
+	addDistanceToStations(stations, function(sorted_stations, userLocation) {
+		bubi.setStations(sorted_stations);
+		bubi.setUserLocation(userLocation);
+	});
+});
+
+
+function getBubiData(cb) {
+	var r = new XMLHttpRequest;
+	r.open("GET", "https://nextbike.net/maps/nextbike-live.xml?domains=mb", true);
+	r.onload = function() {
+		var cityXml = r.responseXML.firstChild.firstChild.firstChild;
+		cb(cityXml)
+	};
+	r.send();
+}
+
+
+function getPrettyName(unique_name) {
+	var r = new RegExp('^\\d{4}[ -](.*)$');
+	var match = r.exec(unique_name);
+	if (match != null) {
+		return match[1].trim();
+	}
+	throw new Error("RegExp didn't work");
+}
+
+
+function getPrettyDistance(dist_km) {
+	if (typeof dist_km !== "number") {
+		return "--";
+	}
+	else if (dist_km <= 0.01) {
+		return "10m";
+	}
+	else if (dist_km <= 1.0) {
+		return (Math.round(dist_km * 100) * 10).toFixed(0) + "m";
+	}
+	else if (dist_km <= 10.0) {
+		return dist_km.toFixed(1) + "km";
+	}
+	else {
+		return dist_km.toFixed(0) + "km";
+	}
+}
+
+
+function getStations(callback) {
+	getBubiData(function(cityXml) {
+		var stations = [];
+		for (var i=0; i < cityXml.childNodes.length; i++) {
+			var item = cityXml.childNodes.item(i);
+
+			stations.push({
+				uid: item.getAttribute('uid'),
+				lat: item.getAttribute('lat'),
+				lng: item.getAttribute('lng'),
+				unique_name: item.getAttribute('name'),
+				name: getPrettyName(item.getAttribute('name')),
+				num_bikes: item.getAttribute('bikes'),
+				max_bikes: item.getAttribute('bike_racks'),
+				distance: null,
+			});
+		}
+
+		stations.sort(function(a, b) {
+			return (a.name < b.name) ? -1 : 1;
+		});
+
+		callback(stations);
+	});
+}
+
+function getUserLocation(callback) {
+	navigator.geolocation.getCurrentPosition(function(location) {
+		callback({
+			lat: location.coords.latitude,
+			lng: location.coords.longitude,
+		});
+	});
+}
+
+
+function addDistanceToStations(stations, callback) {
+	getUserLocation(function(userLoc) {
+		var addDist = function (station) {
+			var s = Object.create(station);
+			s.distance = latLngDist(userLoc.lat, userLoc.lng, station.lat, station.lng);
+			return s;
+		};
+
+		var compareDist = function(a, b) {
+			return (a.distance < b.distance) ? -1 : 1;
+		};
+
+		callback(stations.map(addDist).sort(compareDist), userLoc);
+	});
+}
+
+
+function latLngDist(lat1, lon1, lat2, lon2) {
+  var R = 6371; // Radius of the earth in km
+  var dLat = deg2rad(lat2-lat1);  // deg2rad below
+  var dLon = deg2rad(lon2-lon1); 
+  var a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2)
+    ; 
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  var d = R * c; // Distance in km
+  return d;
+}
+
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180);
+}
+</script>
+</body>
