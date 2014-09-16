@@ -106,10 +106,16 @@ var BubiInterface = React.createClass({
 	},
 
 	setStations: function(stations, updateTime) {
+		if (this.state.userLocation != null) {
+			addDistanceToStations(stations, this.state.userLocation);
+		}
 		this.setState({ stations: stations, updateTime: updateTime });
 	},
 
 	setUserLocation: function(loc) {
+		if (this.state.stations != null) {
+			addDistanceToStations(this.state.stations, loc);
+		}
 		this.setState({ userLocation: loc });
 	},
 
@@ -192,13 +198,14 @@ var BubiInterface = React.createClass({
 	},
 });
 
-var bubi = React.renderComponent(BubiInterface(), document.getElementById('react_container'))
+var bubi = React.renderComponent(BubiInterface(), document.getElementById('react_container'));
+
+getUserLocation(function(loc) {
+	bubi.setUserLocation(loc);
+});
+
 getStations(function(stations, time) {
 	bubi.setStations(stations, time);
-	addDistanceToStations(stations, function(sorted_stations, userLocation) {
-		bubi.setStations(sorted_stations, time);
-		bubi.setUserLocation(userLocation);
-	});
 });
 
 
@@ -279,19 +286,12 @@ function getUserLocation(callback) {
 }
 
 
-function addDistanceToStations(stations, callback) {
-	getUserLocation(function(userLoc) {
-		var addDist = function (station) {
-			var s = Object.create(station);
-			s.distance = latLngDist(userLoc.lat, userLoc.lng, station.lat, station.lng);
-			return s;
-		};
-
-		var compareDist = function(a, b) {
-			return (a.distance < b.distance) ? -1 : 1;
-		};
-
-		callback(stations.map(addDist).sort(compareDist), userLoc);
+function addDistanceToStations(stations, userLoc) {
+	stations.forEach(function (station) {
+		station.distance = latLngDist(userLoc.lat, userLoc.lng, station.lat, station.lng);
+	});
+	stations.sort(function(a, b) {
+		return (a.distance < b.distance) ? -1 : 1;
 	});
 }
 
