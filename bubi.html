@@ -130,6 +130,22 @@ var BubiInterface = React.createClass({
 		this.setState({ stationView: id });
 	},
 
+	renderHeader: function() {
+		var paddedNum = function(x) {
+			return x.toFixed(0).length == 1 ? "0" + x : x.toFixed(0);
+		}
+
+
+		var time = "";
+		if (this.state.updateTime != null) {
+			var ut = this.state.updateTime;
+			time = ut.getHours() + ":" + paddedNum(ut.getMinutes());
+		}
+		return DOM.div({ className: "header" },
+				"Bubi van?",
+				time)
+	},
+
 	render: function() {
 		if (this.state.stations == null) {
 			return DOM.div(null, "Loading...");
@@ -152,6 +168,7 @@ var BubiInterface = React.createClass({
 			}
 
 			return DOM.div({ className: "container" },
+					this.renderHeader(),
 					DOM.iframe({
 						width: '320',
 						height: '400',
@@ -200,6 +217,7 @@ var BubiInterface = React.createClass({
 			});
 
 			return DOM.div({ className: "container" },
+					this.renderHeader(),
 					DOM.ul({ className: "station_list" }, items));
 		}
 	},
