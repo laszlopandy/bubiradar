@@ -88,6 +88,19 @@ body {
 	padding-left: 3px;
 }
 
+.refresh_image {
+	height: 20px;
+	vertical-align: bottom;
+	padding-right: 3px;
+}
+
+.refresh_button {
+	background-color: white;
+	border: 2px solid #A0CD64;
+	padding: 3px;
+	font-size: 100%;
+}
+
 .header {
 
 }
@@ -136,15 +149,20 @@ var BubiInterface = React.createClass({
 			return x.toFixed(0).length == 1 ? "0" + x : x.toFixed(0);
 		}
 
-
 		var time = "";
 		if (this.state.updateTime != null) {
 			var ut = this.state.updateTime;
 			time = ut.getHours() + ":" + paddedNum(ut.getMinutes());
 		}
+
+		var refreshButton =
+			DOM.button({ className: "refresh_button" },
+				DOM.img({ className: "refresh_image", src: "assets/refresh.svg" }),
+				time);
+
 		return DOM.div({ className: "header" },
 				"Bubi van?",
-				time)
+				refreshButton)
 	},
 
 	render: function() {
