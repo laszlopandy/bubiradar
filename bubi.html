@@ -89,7 +89,6 @@ body {
 }
 
 .refresh_image {
-	height: 20px;
 	vertical-align: bottom;
 	padding-right: 3px;
 }
@@ -99,6 +98,29 @@ body {
 	border: 2px solid #A0CD64;
 	padding: 3px;
 	font-size: 100%;
+}
+
+.refresh_image.spinning {
+	-webkit-animation: spin 1s linear infinite;
+    -moz-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+}
+
+@-moz-keyframes spin {
+	100% {
+		-moz-transform: rotate(360deg);
+	}
+}
+@-webkit-keyframes spin {
+	100% {
+		-webkit-transform: rotate(360deg);
+	}
+}
+@keyframes spin {
+	100% {
+		-webkit-transform: rotate(360deg);
+		transform:rotate(360deg);
+	}
 }
 
 .header {
@@ -132,6 +154,7 @@ var BubiInterface = React.createClass({
 			userLocation: null,
 			stationView: null,
 			updateTime: null,
+			waitingForData: false,
 		};
 	},
 
@@ -139,7 +162,11 @@ var BubiInterface = React.createClass({
 		if (this.state.userLocation != null) {
 			addDistanceToStations(stations, this.state.userLocation);
 		}
-		this.setState({ stations: stations, updateTime: updateTime });
+		this.setState({
+			stations: stations,
+			updateTime: updateTime,
+			waitingForData: false,
+		});
 	},
 
 	setUserLocation: function(loc) {
@@ -165,8 +192,22 @@ var BubiInterface = React.createClass({
 		}
 
 		var refreshButton =
-			DOM.button({ className: "refresh_button" },
-				DOM.img({ className: "refresh_image", src: "assets/refresh.svg" }),
+			DOM.button({ 
+					className: "refresh_button",
+					onClick: function() {
+						this.props.reloadData();
+						this.setState({ waitingForData: true });
+					}.bind(this),
+				},
+				DOM.img({
+					className: classSet({
+						"refresh_image": true,
+						"spinning": this.state.waitingForData,
+					}),
+					src: "assets/refresh.svg",
+					width: 15,
+					height: 15,
+				}),
 				time);
 
 		return DOM.div({ className: "header" },
@@ -251,15 +292,18 @@ var BubiInterface = React.createClass({
 	},
 });
 
-var bubi = React.renderComponent(BubiInterface(), document.getElementById('react_container'));
+function reloadData() {
+	getUserLocation(function(loc) {
+		bubi.setUserLocation(loc);
+	});
 
-getUserLocation(function(loc) {
-	bubi.setUserLocation(loc);
-});
+	getStations(function(stations, time) {
+		bubi.setStations(stations, time);
+	});
+}
 
-getStations(function(stations, time) {
-	bubi.setStations(stations, time);
-});
+var bubi = React.renderComponent(BubiInterface({ reloadData: reloadData }), document.getElementById('react_container'));
+reloadData();
 
 
 function getBubiData(cb) {
