@@ -113,6 +113,15 @@ body {
 
 <script>
 
+var ASSETS = ['assets/refresh.svg', 'assets/bike.svg']
+ASSETS.forEach(function(x) {
+	var i = new Image();
+	i.onload = function() {
+		console.log("Preloaded " + x);
+	};
+	i.src = x;
+});
+
 React.initializeTouchEvents(true);
 var classSet = React.addons.classSet;
 var DOM = React.DOM;
