@@ -152,13 +152,7 @@ body {
 }
 </style>
 
-<script src="lib/react-0.11.2.min.js"></script>
-</head>
-<body>
-<div id='react_container'></div>
-
 <script>
-
 var ASSETS = ['assets/refresh.svg', 'assets/bike.svg']
 ASSETS.forEach(function(x) {
 	var i = new Image();
@@ -167,6 +161,14 @@ ASSETS.forEach(function(x) {
 	};
 	i.src = x;
 });
+</script>
+
+<script src="lib/react-0.11.2.min.js"></script>
+</head>
+<body>
+<div id='react_container'></div>
+
+<script>
 
 React.initializeTouchEvents(true);
 var classSet = function(x) {
