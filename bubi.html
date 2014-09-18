@@ -105,17 +105,14 @@ body {
 	padding-right: 3px;
 }
 
-.back_arrow {
-	line-height: 23px;
-	vertical-align: bottom;
-	margin-right: 6px;
-}
-
 .back_button {
 	position: fixed;
 	margin-top: 3px;
 	margin-left: 3px;
 	box-shadow: 2px 2px 4px black;
+	width: 44px;
+	height: 44px;
+	box-sizing: border-box;
 }
 
 .refresh_button, .back_button {
@@ -265,8 +262,7 @@ var BubiInterface = React.createClass({
 							this.setStationView(null);
 						}.bind(this),
 					},
-					DOM.span({ className: "back_arrow" }, "◀"),
-					"Back");
+					"◀");
 
 			return DOM.div({ className: "container" },
 					backButton,
