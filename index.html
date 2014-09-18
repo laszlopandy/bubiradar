@@ -106,11 +106,6 @@ body {
 	padding-left: 3px;
 }
 
-.refresh_image {
-	vertical-align: bottom;
-	padding-right: 3px;
-}
-
 .back_button {
 	position: fixed;
 	border-width: 0 3px 3px 0;
@@ -128,6 +123,15 @@ body {
 	border: 2px solid #A0CD64;
 	padding: 3px 6px;
 	font-size: 100%;
+}
+
+.refresh_image {
+	vertical-align: bottom;
+	padding-right: 3px;
+	padding-bottom: 2px;
+	transform-origin: 7.395px 7.5px 0;
+	-moz-transform-origin: 7.395px 7.5px 0;
+	-webkit-transform-origin: 7.395px 7.5px 0;
 }
 
 .refresh_image.spinning {
@@ -237,7 +241,6 @@ var BubiInterface = React.createClass({
 						"spinning": this.state.waitingForData,
 					}),
 					src: "assets/refresh.svg",
-					width: 15,
 					height: 15,
 				}),
 				time);
