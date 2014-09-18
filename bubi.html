@@ -105,7 +105,20 @@ body {
 	padding-right: 3px;
 }
 
-.refresh_button {
+.back_arrow {
+	line-height: 23px;
+	vertical-align: bottom;
+	margin-right: 6px;
+}
+
+.back_button {
+	position: fixed;
+	margin-top: 3px;
+	margin-left: 3px;
+	box-shadow: 2px 2px 4px black;
+}
+
+.refresh_button, .back_button {
 	background-color: white;
 	border: 2px solid #A0CD64;
 	padding: 3px 6px;
@@ -218,7 +231,7 @@ var BubiInterface = React.createClass({
 				}),
 				time);
 
-		return DOM.div({ className: "header_container" }, 
+		return DOM.div({ className: "header_container" },
 				DOM.div({ className: "header" },
 					"Bubi van?",
 					refreshButton));
@@ -245,11 +258,21 @@ var BubiInterface = React.createClass({
 				map_dest = selected[0].lat + "," + selected[0].lng;
 			}
 
+			var backButton =
+				DOM.button({
+						className: "back_button",
+						onClick: function() {
+							this.setStationView(null);
+						}.bind(this),
+					},
+					DOM.span({ className: "back_arrow" }, "◀"),
+					"Back");
+
 			return DOM.div({ className: "container" },
-					this.renderHeader(),
+					backButton,
 					DOM.iframe({
 						width: this.props.windowWidth,
-						height: this.props.windowHeight - 39,
+						height: this.props.windowHeight,
 						seamless: true,
 						frameBorder: 0,
 						src: "https://www.google.com/maps/embed/v1/directions?key=AIzaSyA1ko9DhkUQvO2N7mIwroQqFJ8ax1aRP6g&origin=" + map_origin + "&destination=" + map_dest + "&mode=walking",
