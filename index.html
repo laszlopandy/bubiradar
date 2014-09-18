@@ -242,7 +242,7 @@ var BubiInterface = React.createClass({
 
 	render: function() {
 		if (this.state.stations == null) {
-			return DOM.div(null, "Loading...");
+			return DOM.div(null);
 		}
 		else if (this.state.stationView != null && this.state.stations != null) {
 			var map_origin = "Budapest";
