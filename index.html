@@ -152,7 +152,7 @@ body {
 }
 </style>
 
-<script src="lib/react-with-addons-0.11.1.min.js"></script>
+<script src="lib/react-0.11.2.min.js"></script>
 </head>
 <body>
 <div id='react_container'></div>
@@ -169,7 +169,11 @@ ASSETS.forEach(function(x) {
 });
 
 React.initializeTouchEvents(true);
-var classSet = React.addons.classSet;
+var classSet = function(x) {
+	return Object.keys(x).filter(function(y) {
+				return !!x[y];
+		}).join(' ');
+};
 var DOM = React.DOM;
 var BubiInterface = React.createClass({
 	getInitialState: function() {
