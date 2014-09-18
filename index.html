@@ -31,6 +31,12 @@ body {
 	box-sizing: border-box;
 }
 
+.about_container {
+	text-align: center;
+	padding: 12px;
+	font-size: 80%;
+}
+
 .station_list {
 	list-style-type: none;
 	padding: 0;
@@ -313,9 +319,15 @@ var BubiInterface = React.createClass({
 					);
 			});
 
+			var aboutLink =
+				DOM.div({ className: "about_container" },
+					DOM.a({ href: "https://github.com/laszlopandy/bubiradar/" },
+						"https://github.com/laszlopandy/bubiradar/"));
+
 			return DOM.div({ className: "container" },
 					this.renderHeader(),
-					DOM.ul({ className: "station_list" }, items));
+					DOM.ul({ className: "station_list" }, items),
+					aboutLink);
 		}
 	},
 });
