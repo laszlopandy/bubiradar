@@ -106,16 +106,29 @@ body {
 	padding-left: 3px;
 }
 
+.back_button_container {
+	position: fixed;
+}
+
 .back_button {
 	position: fixed;
-	border-width: 0 3px 3px 0;
-	border-color: #A0CD64;
-	border-style: solid;
 	background-color: white;
-	font-size: 100%;
-	width: 44px;
-	height: 44px;
+	padding: 0;
+	border: 2px solid #A0CD64;
+	width: 130px;
+	height: 60px;
 	box-sizing: border-box;
+
+	transform: translate(-30px, -25px) rotate(-30deg);
+	-moz-transform: translate(-30px, -25px) rotate(-30deg);
+	-webkit-transform: translate(-30px, -25px) rotate(-30deg);
+}
+
+.back_button_container > img {
+	position: fixed;
+	top: -3px;
+	left: 2px;
+	pointer-events: none;
 }
 
 .refresh_button {
@@ -159,7 +172,7 @@ body {
 </style>
 
 <script>
-var ASSETS = ['assets/refresh.svg', 'assets/bike.svg']
+var ASSETS = ['assets/refresh.svg', 'assets/bike.svg', 'assets/back-arrow.svg']
 ASSETS.forEach(function(x) {
 	var i = new Image();
 	i.onload = function() {
@@ -273,13 +286,17 @@ var BubiInterface = React.createClass({
 			}
 
 			var backButton =
-				DOM.button({
-						className: "back_button",
-						onClick: function() {
-							this.setStationView(null);
-						}.bind(this),
-					},
-					"◀");
+				DOM.div({ className: "back_button_container" },
+					DOM.button({
+							className: "back_button",
+							onClick: function() {
+								this.setStationView(null);
+							}.bind(this),
+						}),
+					DOM.img({
+						src: "assets/back-arrow.svg",
+						height: "40",
+					}));
 
 			return DOM.div({ className: "container" },
 					backButton,
