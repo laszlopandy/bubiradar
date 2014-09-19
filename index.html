@@ -59,6 +59,9 @@ body {
 	border-style: solid;
 
 	padding: 3px 6px;
+
+	/* no-flex */
+	overflow: auto;
 }
 
 .list_item_container {
@@ -83,16 +86,15 @@ body {
 	-webkit-flex-shrink: 0;
 }
 
-.name_group {
-	display: flex;
-	display: -webkit-flex;
-	flex-direction: column;
-	-webkit-flex-direction: column;
+.num_bikes.no-flex {
+	float: right;
+}
+
+.name_group.no-flex {
+	float: left;
 }
 
 .station_name {
-	flex-shrink: 1;
-	-webkit-flex-shrink: 1;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -139,6 +141,10 @@ body {
 	font-size: 100%;
 }
 
+.refresh_button.no-flex {
+	float: right;
+}
+
 .refresh_image {
 	vertical-align: bottom;
 	padding-right: 3px;
@@ -173,14 +179,29 @@ body {
 </style>
 
 <script>
-var ASSETS = ['assets/refresh.svg', 'assets/bike.svg', 'assets/back-arrow.svg']
-ASSETS.forEach(function(x) {
-	var i = new Image();
-	i.onload = function() {
-		console.log("Preloaded " + x);
-	};
-	i.src = x;
-});
+(function() {
+	var ASSETS = ['assets/refresh.svg', 'assets/bike.svg', 'assets/back-arrow.svg']
+	ASSETS.forEach(function(x) {
+		var i = new Image();
+		i.onload = function() {
+			console.log("Preloaded " + x);
+		};
+		i.src = x;
+	});
+})();
+
+var FLEX_SUPPORTED = (function() {
+	var e = document.createElement('div');
+	e.style.display = '';
+	e.style.display = 'flex';
+	e.style.display = '-webkit-flex';
+
+	return (e.style.display == 'flex' || e.style.display == '-webkit-flex');
+})();
+
+console.log("Flex supported: " + FLEX_SUPPORTED);
+
+
 </script>
 
 <script src="lib/react-0.11.2.min.js"></script>
@@ -243,7 +264,10 @@ var BubiInterface = React.createClass({
 
 		var refreshButton =
 			DOM.button({ 
-					className: "refresh_button",
+					className: classSet({
+						"refresh_button": true,
+						"no-flex": !FLEX_SUPPORTED,
+					}),
 					onClick: function() {
 						this.props.reloadData();
 						this.setState({ waitingForData: true });
@@ -316,9 +340,15 @@ var BubiInterface = React.createClass({
 				var name_group = DOM.span({ className: "station_name" }, s.name);
 				if (s.distance != null) {
 					name_group =
-						DOM.div({ className: "name_group" },
-							DOM.span({ className: "station_name" }, s.name),
-							DOM.span({ className: "station_dist" }, getPrettyDistance(s.distance)));
+						DOM.div(
+							{
+								className: classSet({
+									"name_group": true,
+									"no-flex": !FLEX_SUPPORTED,
+								}),
+							},
+							DOM.div({ className: "station_name" }, s.name),
+							DOM.div({ className: "station_dist" }, getPrettyDistance(s.distance)));
 				}
 
 				return DOM.li(
@@ -335,7 +365,12 @@ var BubiInterface = React.createClass({
 							},
 							name_group,
 							DOM.span(
-								{ className: "num_bikes" },
+								{
+									className: classSet({
+										"num_bikes": true,
+										"no-flex": !FLEX_SUPPORTED,
+									}),
+								},
 								[
 									"" + s.num_bikes,
 									DOM.img({ 
