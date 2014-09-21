@@ -18,7 +18,7 @@ Images:
 
 FAQ
 ===
-## Why doesn't Bubi Radar show show the number of free bike docks at each station?
+### Why doesn't Bubi Radar show show the number of free bike docks at each station?
 <img align="right" src="readme-bike-stand.jpg">
 In some bike shaing systems such as Velib in Paris, bikes must be returned at a bike dock. If there are no free docks, you must take the bike to another station. However Bubi bikes have an electronic lock attached to them. If all the docks are full, this lock can be used to attach the bike to the green bar next to the station (See instructions under "Tele a gyűjtőállomás?" on [the usage page](http://molbubi.bkk.hu/hasznalat.php)). Bikes can even be chained together, so you can always return a bike regardless of how many are there already.
 
