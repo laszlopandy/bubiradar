@@ -264,10 +264,10 @@ console.log("Flex supported: " + FLEX_SUPPORTED);
 
 </script>
 
-<script src="lib/react-0.11.2.min.js"></script>
+<script src="bubiradar.js"></script>
 </head>
 <body>
-<div id='react_container'>
+<div id='elm_container'>
 	<div class="spinner">
 		<div class="bounce1"></div>
 		<div class="bounce2"></div>
@@ -277,6 +277,40 @@ console.log("Flex supported: " + FLEX_SUPPORTED);
 
 <script>
 
+var div = document.getElementById('elm_container');
+div.innerHTML = '';
+var bubiRadar = Elm.embed(Elm.Main, div, {
+	userLocation: null,
+	stationXmlIn: [],
+});
+
+bubiRadar.ports.stationXmlOut.subscribe(function(xmlString) {
+	var parser = new DOMParser();
+	var xmlDoc = parser.parseFromString(xmlString, "text/xml");
+	var cityXml = xmlDoc.firstChild.firstChild.firstChild;
+
+	var stations = [];
+	for (var i=0; i < cityXml.childNodes.length; i++) {
+		var item = cityXml.childNodes.item(i);
+
+		stations.push({
+			uid: item.getAttribute('uid'),
+			lat: item.getAttribute('lat'),
+			lng: item.getAttribute('lng'),
+			unique_name: item.getAttribute('name'),
+			num_bikes: item.getAttribute('bikes'),
+			max_bikes: item.getAttribute('bike_racks'),
+		});
+	}
+
+	// stations.sort(function(a, b) {
+	// 	return (a.name < b.name) ? -1 : 1;
+	// });
+
+	bubiRadar.ports.stationXmlIn.send(stations);
+});
+
+/*
 React.initializeTouchEvents(true);
 var classSet = function(x) {
 	return Object.keys(x).filter(function(y) {
@@ -590,5 +624,6 @@ function latLngDist(lat1, lon1, lat2, lon2) {
 function deg2rad(deg) {
   return deg * (Math.PI/180);
 }
+*/
 </script>
 </body>
