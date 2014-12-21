@@ -284,6 +284,18 @@ var bubiRadar = Elm.embed(Elm.Main, div, {
 	stationXmlIn: [],
 });
 
+function getUserLocation() {
+	navigator.geolocation.getCurrentPosition(function(location) {
+		bubiRadar.ports.userLocation.send({
+			lat: location.coords.latitude,
+			lng: location.coords.longitude,
+		});
+	});
+}
+
+bubiRadar.ports.userLocationRequest.subscribe(getUserLocation);
+getUserLocation();
+
 bubiRadar.ports.stationXmlOut.subscribe(function(xmlString) {
 	var parser = new DOMParser();
 	var xmlDoc = parser.parseFromString(xmlString, "text/xml");

@@ -1,7 +1,9 @@
 import Mouse
-import Signal ((<~), constant, Signal)
+import Signal
+import Signal ((<~), (~), Signal)
 import Text (asText)
 import Http
+import Graphics.Element (flow, down)
 
 port userLocation : Signal (Maybe Location)
 port stationXmlIn : Signal (List StationXml) 
@@ -9,8 +11,18 @@ port stationXmlIn : Signal (List StationXml)
 port stationXmlOut : Signal (Maybe String)
 port stationXmlOut = getBubiData
 
+port userLocationRequest : Signal ()
+port userLocationRequest = Signal.constant ()
 
-main = asText <~ stationXmlIn
+scene a b =
+    flow down [
+            asText a,
+            asText b
+        ]
+
+main = scene <~ userLocation ~ stationXmlIn
+
+
 
 type alias StationXml = {
         uid : String,
@@ -22,9 +34,9 @@ type alias StationXml = {
     }
 
 type alias Location = {
-		lag : Int,
-		lng : Int
-	}
+        lat : Float,
+        lng : Float
+    }
 
 type alias Uid = String
 type alias Station = {
