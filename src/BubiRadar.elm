@@ -14,15 +14,8 @@ port stationXmlOut = getBubiData
 port userLocationRequest : Signal ()
 port userLocationRequest = Signal.constant ()
 
-scene a b =
-    flow down [
-            asText a,
-            asText b
-        ]
 
-main = scene <~ userLocation ~ stationXmlIn
-
-
+main = asText <~ ((,) <~ userLocation ~ stationXmlIn)
 
 type alias StationXml = {
         uid : String,
