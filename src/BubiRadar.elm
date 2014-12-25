@@ -63,7 +63,9 @@ makeStation xml =
 
 stations : List StationXml -> List Station
 stations list =
-    List.filterMap (makeStation >> Result.toMaybe) list
+    list
+        |> List.filterMap (makeStation >> Result.toMaybe)
+        |> List.sortBy .name
 
 main =
     Signal.map
