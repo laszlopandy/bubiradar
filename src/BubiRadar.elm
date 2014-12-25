@@ -7,6 +7,7 @@ import Graphics.Element (flow, down)
 import String
 import Result
 import List
+import Maybe
 import Debug
 
 {- Inward ports -}
@@ -61,11 +62,35 @@ makeStation xml =
             ~~~ String.toInt xml.max_bikes
             ~~~ makeLocation xml.lat xml.lng
 
-stations : List StationXml -> List Station
-stations list =
-    list
-        |> List.filterMap (makeStation >> Result.toMaybe)
-        |> List.sortBy .name
+calcDistance : Location -> Location -> Meters
+calcDistance a b =
+    let cosDeg = cos << degrees
+        dLat = sin <| (degrees (b.lat - a.lat)) / 2
+        dLng = sin <| (degrees (b.lng - a.lng)) / 2
+        x = (dLat * dLat) + (cosDeg a.lat * cosDeg b.lat * dLng * dLng)
+        radius = 6371  -- Radius of the earth in km
+        distKm = radius * 2 * (atan2 (sqrt x) (sqrt 1-x))
+    in
+        round (distKm * 1000)
+
+updateStationDistance : Location -> Station -> Station
+updateStationDistance userLocation station =
+    { station |
+        distance <- Just (calcDistance userLocation station.location)
+    }
+
+stations : List StationXml -> Maybe Location -> List Station
+stations xmlList loc =
+    let list =
+            xmlList |> List.filterMap (makeStation >> Result.toMaybe)
+    in
+        case loc of
+            Nothing ->
+                list |> List.sortBy .name
+            Just userLocation ->
+                list
+                    |> List.map (updateStationDistance userLocation)
+                    |> List.sortBy (.distance >> Maybe.withDefault 0)
 
 main =
     Signal.map
@@ -73,7 +98,7 @@ main =
         (Signal.map2
             (,)
             userLocation
-            (Signal.map stations stationXmlIn))
+            (Signal.map2 stations stationXmlIn userLocation))
 
 type alias StationXml = {
         uid : String,
