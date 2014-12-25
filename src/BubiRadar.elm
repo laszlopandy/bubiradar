@@ -45,6 +45,26 @@ makePrettyName unique_name =
             | otherwise ->
                 Debug.crash unique_name
 
+toFixed : Int -> Float -> String
+toFixed exp num =
+    let factor = 10 ^ exp
+        floatRound = toFloat << round
+    in
+        -- TODO: pad with zeros
+        toString ((floatRound (num * factor)) / factor)
+
+makePrettyDistance : Meters -> String
+makePrettyDistance dist =
+    if  | dist <= 10 ->
+            "10m"
+        | dist < 1000 ->
+            toString (toFixed -1 dist) ++ "m"
+        | otherwise ->
+            let kilos = dist / 1000
+                decimalPlaces = if kilos < 10.0 then 1 else 0
+            in
+                toString (toFixed decimalPlaces kilos) ++ "km"
+
 makeStation : StationXml -> Result String Station
 makeStation xml =
     let makeRecord num_bikes max_bikes loc = {

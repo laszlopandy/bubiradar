@@ -315,10 +315,6 @@ bubiRadar.ports.stationXmlOut.subscribe(function(xmlString) {
 		});
 	}
 
-	// stations.sort(function(a, b) {
-	// 	return (a.name < b.name) ? -1 : 1;
-	// });
-
 	bubiRadar.ports.stationXmlIn.send(stations);
 });
 
@@ -530,34 +526,6 @@ var bubi = React.renderComponent(
 	document.getElementById('react_container'));
 reloadData();
 
-
-function getPrettyDistance(dist_km) {
-	if (typeof dist_km !== "number") {
-		return "--";
-	}
-	else if (dist_km <= 0.01) {
-		return "10m";
-	}
-	else if (dist_km <= 1.0) {
-		return (Math.round(dist_km * 100) * 10).toFixed(0) + "m";
-	}
-	else if (dist_km <= 10.0) {
-		return dist_km.toFixed(1) + "km";
-	}
-	else {
-		return dist_km.toFixed(0) + "km";
-	}
-}
-
-
-function getUserLocation(callback) {
-	navigator.geolocation.getCurrentPosition(function(location) {
-		callback({
-			lat: location.coords.latitude,
-			lng: location.coords.longitude,
-		});
-	});
-}
 */
 </script>
 </body>
