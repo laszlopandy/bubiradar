@@ -20,20 +20,16 @@ port stationXmlOut = getBubiData
 port userLocationRequest : Signal ()
 port userLocationRequest = Signal.constant ()
 
---resultMap2 : (a -> b -> c) ->     Result e a -> Result e b -> Result e c
---resultMap2 f a b = (Result.map f a) `Result.andThen` (\x -> Result.map x b)
 
-(<~~) : (a -> b) -> Result e a -> Result e b
-(<~~) = Result.map
-(~~~) : Result e (a -> b) -> Result e a -> Result e b
-(~~~) f a = f `Result.andThen` (\x -> Result.map x a)
+andThenMap : Result e (a -> b) -> Result e a -> Result e b
+andThenMap func a = func `Result.andThen` (\x -> Result.map x a)
 
 
 makeLocation : String -> String -> Result String Location
 makeLocation lat lng =
     Location
-        <~~ (String.toFloat lat)
-        ~~~ (String.toFloat lng)
+        `Result.map` (String.toFloat lat)
+        `andThenMap` (String.toFloat lng)
 
 makePrettyName unique_name =
     let delim = String.slice 4 5 unique_name
@@ -78,9 +74,9 @@ makeStation xml =
             }
     in
         makeRecord
-            <~~ String.toInt xml.num_bikes
-            ~~~ String.toInt xml.max_bikes
-            ~~~ makeLocation xml.lat xml.lng
+            `Result.map` String.toInt xml.num_bikes
+            `andThenMap` String.toInt xml.max_bikes
+            `andThenMap` makeLocation xml.lat xml.lng
 
 calcDistance : Location -> Location -> Meters
 calcDistance a b =
