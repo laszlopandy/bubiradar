@@ -31,6 +31,7 @@ makeLocation lat lng =
         `Result.map` (String.toFloat lat)
         `andThenMap` (String.toFloat lng)
 
+
 makePrettyName unique_name =
     let delim = String.slice 4 5 unique_name
     in
@@ -41,6 +42,7 @@ makePrettyName unique_name =
             | otherwise ->
                 Debug.crash unique_name
 
+
 toFixed : Int -> Float -> String
 toFixed exp num =
     let factor = 10 ^ exp
@@ -48,6 +50,7 @@ toFixed exp num =
     in
         -- TODO: pad with zeros
         toString ((floatRound (num * factor)) / factor)
+
 
 makePrettyDistance : Meters -> String
 makePrettyDistance dist =
@@ -60,6 +63,7 @@ makePrettyDistance dist =
                 decimalPlaces = if kilos < 10.0 then 1 else 0
             in
                 toString (toFixed decimalPlaces kilos) ++ "km"
+
 
 makeStation : StationXml -> Result String Station
 makeStation xml =
@@ -78,6 +82,7 @@ makeStation xml =
             `andThenMap` String.toInt xml.max_bikes
             `andThenMap` makeLocation xml.lat xml.lng
 
+
 calcDistance : Location -> Location -> Meters
 calcDistance a b =
     let cosDeg = cos << degrees
@@ -89,11 +94,13 @@ calcDistance a b =
     in
         round (distKm * 1000)
 
+
 updateStationDistance : Location -> Station -> Station
 updateStationDistance userLocation station =
     { station |
         distance <- Just (calcDistance userLocation station.location)
     }
+
 
 stations : List StationXml -> Maybe Location -> List Station
 stations xmlList loc =
@@ -108,6 +115,19 @@ stations xmlList loc =
                     |> List.map (updateStationDistance userLocation)
                     |> List.sortBy (.distance >> Maybe.withDefault 0)
 
+
+getBubiData : Signal (Maybe String)
+getBubiData =
+    let url = "https://nextbike.net/maps/nextbike-live.xml?domains=mb"
+        handleResp resp =
+            case resp of
+                Http.Success data -> Just data
+                Http.Waiting -> Nothing
+                Http.Failure _ _ -> Nothing
+    in
+        handleResp <~ Http.sendGet (Signal.constant url)
+
+
 main =
     Signal.map
         asText
@@ -115,6 +135,7 @@ main =
             (,)
             userLocation
             (Signal.map2 stations stationXmlIn userLocation))
+
 
 type alias StationXml = {
         uid : String,
@@ -131,7 +152,9 @@ type alias Location = {
     }
 
 type alias Uid = String
+
 type alias Meters = Int
+
 type alias Station = {
         uid : Uid,
         location : Location,
@@ -149,14 +172,3 @@ type alias State = {
         updateTime : Int,
         waitingForData : Bool
     }
-
-getBubiData : Signal (Maybe String)
-getBubiData =
-    let url = "https://nextbike.net/maps/nextbike-live.xml?domains=mb"
-        handleResp resp =
-            case resp of
-                Http.Success data -> Just data
-                Http.Waiting -> Nothing
-                Http.Failure _ _ -> Nothing
-    in
-        handleResp <~ Http.sendGet (Signal.constant url)
