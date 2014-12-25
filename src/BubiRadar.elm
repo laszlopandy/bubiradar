@@ -90,6 +90,7 @@ type alias Location = {
     }
 
 type alias Uid = String
+type alias Meters = Int
 type alias Station = {
         uid : Uid,
         location : Location,
@@ -97,7 +98,7 @@ type alias Station = {
         name : String,
         num_bikes : Int,
         max_bikes : Int,
-        distance : Maybe Int
+        distance : Maybe Meters
     }
 
 type alias State = {
