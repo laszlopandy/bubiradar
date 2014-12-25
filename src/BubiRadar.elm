@@ -7,6 +7,7 @@ import Graphics.Element (flow, down)
 import String
 import Result
 import List
+import Debug
 
 {- Inward ports -}
 port userLocation : Signal (Maybe Location)
@@ -18,7 +19,7 @@ port stationXmlOut = getBubiData
 port userLocationRequest : Signal ()
 port userLocationRequest = Signal.constant ()
 
---resultMap2 : (a -> b -> c) -> Result e a -> Result e b -> Result e c
+--resultMap2 : (a -> b -> c) ->     Result e a -> Result e b -> Result e c
 --resultMap2 f a b = (Result.map f a) `Result.andThen` (\x -> Result.map x b)
 
 (<~~) : (a -> b) -> Result e a -> Result e b
@@ -33,13 +34,23 @@ makeLocation lat lng =
         <~~ (String.toFloat lat)
         ~~~ (String.toFloat lng)
 
+makePrettyName unique_name =
+    let delim = String.slice 4 5 unique_name
+    in
+        if  | delim == "-" || delim == " " ->
+                unique_name
+                    |> String.dropLeft 5
+                    |> String.trim
+            | otherwise ->
+                Debug.crash unique_name
+
 makeStation : StationXml -> Result String Station
 makeStation xml =
     let makeRecord num_bikes max_bikes loc = {
                 uid = xml.uid,
                 location = loc,
                 unique_name = xml.unique_name,
-                name = xml.unique_name,
+                name = makePrettyName xml.unique_name,
                 num_bikes = num_bikes,
                 max_bikes = max_bikes,
                 distance = Nothing
