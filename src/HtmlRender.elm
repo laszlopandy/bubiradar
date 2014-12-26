@@ -41,8 +41,8 @@ makePrettyTime t =
         toString (Date.hour t) ++ ":" ++ padded (Date.minute t)
 
 
-classNameList : List (String, Bool) -> Html.Attribute
-classNameList list =
+classList : List (String, Bool) -> Html.Attribute
+classList list =
     list
         |> List.filter snd
         |> List.map fst
@@ -53,7 +53,7 @@ classNameList list =
 refreshButton state =
     Html.button
         [
-            classNameList [
+            classList [
                 ("refresh_button", True),
                 ("no-flex", not state.flexSupported)
             ]
@@ -62,7 +62,7 @@ refreshButton state =
         [
             Html.img
                 [
-                    classNameList [
+                    classList [
                         ("refresh_image", True),
                         ("spinning", state.waitingForData)
                     ],
@@ -92,7 +92,7 @@ renderStation station =
     let backgroundDiv =
             Html.div
                 [
-                    classNameList [
+                    classList [
                             ("list_item_container", True),
                             ("list_item_no_bikes", station.num_bikes == 0),
                             ("list_item_few_bikes", station.num_bikes <= 3 && station.num_bikes > 0)
@@ -107,7 +107,7 @@ renderStation station =
                     Html.span [ class "station_name" ] [ Html.text station.name ]
                 Just dist ->
                     Html.div
-                        [ classNameList [
+                        [ classList [
                                 ("name_group", True),
                                 ("no-flex", not state.flexSupported)
                             ]
@@ -120,7 +120,7 @@ renderStation station =
         rightDiv =
             Html.span
                 [
-                    classNameList [
+                    classList [
                             ("num_bikes", True),
                             ("no-flex", not state.flexSupported)
                         ]
