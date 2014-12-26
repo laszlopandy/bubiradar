@@ -22,15 +22,21 @@ port userLocationRequest : Signal ()
 port userLocationRequest = Signal.constant ()
 
 
-andThenMap : Result e (a -> b) -> Result e a -> Result e b
-andThenMap func a = func `Result.andThen` (\x -> Result.map x a)
+map2 : (a -> b -> c) -> Result e a -> Result e b -> Result e c
+map2 f a b =
+    Result.map f a `Result.andThen` (\x -> Result.map x b)
+
+map3 : (a -> b -> c -> d) -> Result e a -> Result e b -> Result e c -> Result e d
+map3 f a b c =
+    map2 f a b `Result.andThen` (\x -> Result.map x c)
 
 
 makeLocation : String -> String -> Result String Location
 makeLocation lat lng =
-    Location
-        `Result.map` (String.toFloat lat)
-        `andThenMap` (String.toFloat lng)
+    map2
+        Location
+        (String.toFloat lat)
+        (String.toFloat lng)
 
 
 makePrettyName unique_name =
@@ -56,10 +62,11 @@ makeStation xml =
                 distance = Nothing
             }
     in
-        makeRecord
-            `Result.map` String.toInt xml.num_bikes
-            `andThenMap` String.toInt xml.max_bikes
-            `andThenMap` makeLocation xml.lat xml.lng
+        map3
+            makeRecord
+            (String.toInt xml.num_bikes)
+            (String.toInt xml.max_bikes)
+            (makeLocation xml.lat xml.lng)
 
 
 calcDistance : Location -> Location -> Meters
