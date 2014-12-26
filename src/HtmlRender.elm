@@ -9,7 +9,7 @@ import String
 import Date
 import Date (Date)
 import List
-import Types (State, Meters)
+import Types (Station, State, Meters)
 
 
 toFixed : Int -> Float -> String
@@ -87,9 +87,68 @@ renderHeader state =
         ]
 
 
+renderStation : Station -> Html
+renderStation station =
+    let backgroundDiv =
+            Html.div
+                [
+                    classNameList [
+                            ("list_item_container", True),
+                            ("list_item_no_bikes", station.num_bikes == 0),
+                            ("list_item_few_bikes", station.num_bikes <= 3 && station.num_bikes > 0)
+                        ]
+                    -- TODO: onClick setStationView station.uid
+                ]
+                []
+
+        leftDiv =
+            case station.distance of
+                Nothing ->
+                    Html.span [ class "station_name" ] [ Html.text station.name ]
+                Just dist ->
+                    Html.div
+                        [ classNameList [
+                                ("name_group", True),
+                                ("no-flex", not state.flexSupported)
+                            ]
+                        ]
+                        [
+                            Html.div [ class "station_name" ] [ Html.text station.name ],
+                            Html.div [ class "station_dist" ] [ Html.text (makePrettyDistance dist) ]
+                        ]
+
+        rightDiv =
+            Html.span
+                [
+                    classNameList [
+                            ("num_bikes", True),
+                            ("no-flex", not state.flexSupported)
+                        ]
+                ]
+                [
+                    Html.text (toString station.num_bikes),
+                    Html.img
+                        [
+                            class "bike_image",
+                            src "assets/bike.svg"
+                        ]
+                        []
+                ]
+    in
+        Html.li
+            [ class "list_item" ]
+            [
+                backgroundDiv,
+                leftDiv,
+                rightDiv
+            ]
+
+
 renderStations : State -> Html
 renderStations state =
-    Html.div [ class "station_list" ] []
+    Html.ul
+        [ class "station_list" ]
+        (List.map renderStation state.stations)
 
 
 renderSpinner : Html
@@ -110,7 +169,7 @@ renderAboutLink =
             [ class "about_container" ]
             [ Html.a
                 [ href aboutLink ]
-                [ text aboutLink ]
+                [ Html.text aboutLink ]
             ]
 
 
