@@ -4,7 +4,7 @@ import Graphics.Element (Element)
 import Html
 import Html (Html)
 import Html.Attributes
-import Html.Attributes (class, src, height)
+import Html.Attributes (class, src, height, href)
 import String
 import Date
 import Date (Date)
@@ -87,6 +87,11 @@ renderHeader state =
         ]
 
 
+renderStations : State -> Html
+renderStations state =
+    Html.div [ class "station_list" ] []
+
+
 renderSpinner : Html
 renderSpinner =
     Html.div
@@ -96,6 +101,17 @@ renderSpinner =
             Html.div [ class "bounce2" ] [],
             Html.div [ class "bounce3" ] []
         ]
+
+
+renderAboutLink =
+    let aboutLink = "https://github.com/laszlopandy/bubiradar/"
+    in
+        Html.div
+            [ class "about_container" ]
+            [ Html.a
+                [ href aboutLink ]
+                [ text aboutLink ]
+            ]
 
 
 state : State
@@ -113,7 +129,11 @@ renderHtml : State -> Html
 renderHtml state =
     Html.div
         [ class "container" ]
-        [ renderHeader state ]
+        [
+            renderHeader state,
+            renderStations state,
+            renderAboutLink
+        ]
 
 
 render : Element
