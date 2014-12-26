@@ -9,13 +9,15 @@ import Signal
 import Signal ((<~), (~), Signal)
 import String
 import Text (asText)
+import Time
 
 import HtmlRender
-import Types (Location, Station, State, Meters)
+import Types (Location, Station, RenderParams, State, Meters, Uid)
 
 {- Inward ports -}
+port flexSupported : Signal Bool
 port userLocation : Signal (Maybe Location)
-port stationXmlIn : Signal (List StationXml) 
+port stationXmlIn : Signal (List StationXml)
 {- Outward ports -}
 port stationXmlOut : Signal (Maybe String)
 port stationXmlOut = getBubiData
@@ -90,8 +92,8 @@ updateStationDistance userLocation station =
     }
 
 
-stations : List StationXml -> Maybe Location -> List Station
-stations xmlList loc =
+makeStationList : List StationXml -> Maybe Location -> List Station
+makeStationList xmlList loc =
     let list =
             xmlList |> List.filterMap (makeStation >> Result.toMaybe)
     in
@@ -117,12 +119,7 @@ getBubiData =
 
 initialState : State
 initialState = {
-        stations = [],
-        userLocation = Nothing,
-        stationView = Nothing,
-        updateTime = Date.fromTime 0,
-        waitingForData = True,
-        flexSupported = False
+        stationView = Nothing
     }
 
 {-
@@ -134,7 +131,41 @@ main =
             userLocation
             (Signal.map2 stations stationXmlIn userLocation))
 -}
-main = HtmlRender.render initialState
+
+actionChannel = Signal.channel Nop
+
+
+updateState action oldState =
+    case action of
+        ViewMap uid ->
+            { oldState | stationView <- Just uid }
+        ViewList ->
+            { oldState | stationView <- Nothing }
+        Nop ->
+            oldState
+
+main =
+    let state = Signal.foldp updateState initialState (Signal.subscribe actionChannel)
+        stations = Signal.map2 makeStationList stationXmlIn userLocation
+        updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
+        waitingForData = Signal.constant False
+        renderParams =
+            RenderParams
+                <~ state
+                ~ stations
+                ~ userLocation
+                ~ updateTime
+                ~ waitingForData
+                ~ flexSupported
+    in
+        Signal.map HtmlRender.render renderParams
+
+
+type Action
+    = ViewMap Uid
+    | ViewList
+    | Nop
+
 
 type alias StationXml = {
         uid : String,

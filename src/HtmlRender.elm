@@ -10,7 +10,7 @@ import Html.Attributes (class, src, height, href)
 import List
 import String
 
-import Types (Station, State, Meters)
+import Types (Station, RenderParams, Meters)
 
 
 toFixed : Int -> Float -> String
@@ -75,7 +75,6 @@ refreshButton state =
         ]
 
 
-renderHeader : State -> Html
 renderHeader state =
     Html.div
         [ class "header_container" ]
@@ -145,7 +144,6 @@ renderStation flexSupported station =
             ]
 
 
-renderStations : State -> Html
 renderStations state =
     Html.ul
         [ class "station_list" ]
@@ -174,7 +172,6 @@ renderAboutLink =
             ]
 
 
-renderHtml : State -> Html
 renderHtml state =
     Html.div
         [ class "container" ]
@@ -185,7 +182,7 @@ renderHtml state =
         ]
 
 
-render : State -> Element
+render : RenderParams -> Element
 render state =
     Html.toElement 400 600 <|
         if List.isEmpty state.stations

@@ -280,6 +280,7 @@ console.log("Flex supported: " + FLEX_SUPPORTED);
 var div = document.getElementById('elm_container');
 div.innerHTML = '';
 var bubiRadar = Elm.embed(Elm.Main, div, {
+	flexSupported: FLEX_SUPPORTED,
 	userLocation: null,
 	stationXmlIn: [],
 });

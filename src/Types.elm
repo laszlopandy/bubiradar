@@ -22,9 +22,13 @@ type alias Station = {
     }
 
 type alias State = {
+        stationView : Maybe Uid
+    }
+
+type alias RenderParams = {
+        state : State,
         stations: List Station,
         userLocation : Maybe Location,
-        stationView : Maybe Uid,
         updateTime : Date,
         waitingForData : Bool,
         flexSupported : Bool
