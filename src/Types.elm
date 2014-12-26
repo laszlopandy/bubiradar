@@ -32,6 +32,7 @@ type Action
 
 type alias RenderParams = {
         actionChannel : Signal.Channel Action,
+        refreshChannel : Signal.Channel (),
         state : State,
         stations: List Station,
         userLocation : Maybe Location,

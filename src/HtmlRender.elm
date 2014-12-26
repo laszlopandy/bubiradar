@@ -59,8 +59,8 @@ refreshButton state =
             classList [
                 ("refresh_button", True),
                 ("no-flex", not state.flexSupported)
-            ]
-            -- TODO: onClick
+            ],
+            onClick (Signal.send state.refreshChannel ())
         ]
         [
             Html.img

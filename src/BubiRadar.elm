@@ -112,8 +112,9 @@ getBubiData =
                 Http.Success data -> Just data
                 Http.Waiting -> Nothing
                 Http.Failure _ _ -> Nothing
+        urlSignal = Signal.map (always url) refreshSignal
     in
-        handleResp <~ Http.sendGet (Signal.constant url)
+        handleResp <~ Http.sendGet urlSignal
 
 initialState : State
 initialState = {
@@ -134,6 +135,13 @@ actionChannel : Signal.Channel Action
 actionChannel = Signal.channel ViewList
 
 
+refreshChannel : Signal.Channel ()
+refreshChannel = Signal.channel ()
+
+
+refreshSignal = Signal.subscribe refreshChannel
+
+
 updateState action oldState =
     case action of
         ViewMap uid ->
@@ -148,7 +156,7 @@ main =
         updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
         waitingForData = Signal.constant False
         renderParams =
-            RenderParams actionChannel
+            (RenderParams actionChannel refreshChannel)
                 <~ state
                 ~ stations
                 ~ userLocation
