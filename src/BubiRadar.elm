@@ -8,7 +8,8 @@ import Result
 import List
 import Maybe
 import HtmlRender
-import Types (Location, Station, Meters)
+import Types (Location, Station, State, Meters)
+import Date
 import Debug
 
 {- Inward ports -}
@@ -113,6 +114,16 @@ getBubiData =
     in
         handleResp <~ Http.sendGet (Signal.constant url)
 
+initialState : State
+initialState = {
+        stations = [],
+        userLocation = Nothing,
+        stationView = Nothing,
+        updateTime = Date.fromTime 0,
+        waitingForData = True,
+        flexSupported = False
+    }
+
 {-
 main =
     Signal.map
@@ -122,7 +133,7 @@ main =
             userLocation
             (Signal.map2 stations stationXmlIn userLocation))
 -}
-main = HtmlRender.render
+main = HtmlRender.render initialState
 
 type alias StationXml = {
         uid : String,

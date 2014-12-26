@@ -87,8 +87,8 @@ renderHeader state =
         ]
 
 
-renderStation : Station -> Html
-renderStation station =
+renderStation : Bool -> Station -> Html
+renderStation flexSupported station =
     let backgroundDiv =
             Html.div
                 [
@@ -109,7 +109,7 @@ renderStation station =
                     Html.div
                         [ classList [
                                 ("name_group", True),
-                                ("no-flex", not state.flexSupported)
+                                ("no-flex", not flexSupported)
                             ]
                         ]
                         [
@@ -122,7 +122,7 @@ renderStation station =
                 [
                     classList [
                             ("num_bikes", True),
-                            ("no-flex", not state.flexSupported)
+                            ("no-flex", not flexSupported)
                         ]
                 ]
                 [
@@ -148,7 +148,7 @@ renderStations : State -> Html
 renderStations state =
     Html.ul
         [ class "station_list" ]
-        (List.map renderStation state.stations)
+        (List.map (renderStation state.flexSupported) state.stations)
 
 
 renderSpinner : Html
@@ -173,17 +173,6 @@ renderAboutLink =
             ]
 
 
-state : State
-state = {
-        stations = [],
-        userLocation = Nothing,
-        stationView = Nothing,
-        updateTime = Date.fromTime 0,
-        waitingForData = True,
-        flexSupported = False
-    }
-
-
 renderHtml : State -> Html
 renderHtml state =
     Html.div
@@ -195,8 +184,8 @@ renderHtml state =
         ]
 
 
-render : Element
-render = 
+render : State -> Element
+render state =
     Html.toElement 400 600 <|
         if List.isEmpty state.stations
             then renderSpinner
