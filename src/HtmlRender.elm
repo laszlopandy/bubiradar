@@ -27,12 +27,12 @@ makePrettyDistance dist =
     if  | dist <= 10 ->
             "10m"
         | dist < 1000 ->
-            toString (toFixed -1 dist) ++ "m"
+            toFixed -1 dist ++ "m"
         | otherwise ->
             let kilos = dist / 1000
                 decimalPlaces = if kilos < 10.0 then 1 else 0
             in
-                toString (toFixed decimalPlaces kilos) ++ "km"
+                toFixed decimalPlaces kilos ++ "km"
 
 
 makePrettyTime : Date -> String
