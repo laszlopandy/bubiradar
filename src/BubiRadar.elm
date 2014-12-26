@@ -1,14 +1,11 @@
 import Date
-import Debug
 import Http
 import List
 import Maybe
-import Mouse
 import Result
 import Signal
 import Signal ((<~), (~), Signal)
 import String
-import Text (asText)
 import Time
 
 import HtmlRender
@@ -51,7 +48,8 @@ makePrettyName unique_name =
                     |> String.dropLeft 5
                     |> String.trim
             | otherwise ->
-                Debug.crash unique_name
+                unique_name
+                    |> String.trim
 
 
 makeStation : StationXml -> Result String Station
