@@ -132,14 +132,17 @@ main =
 -}
 
 actionChannel : Signal.Channel Action
-actionChannel = Signal.channel ViewList
+actionChannel =
+    Signal.channel ViewList
 
 
 refreshChannel : Signal.Channel ()
-refreshChannel = Signal.channel ()
+refreshChannel =
+    Signal.channel ()
 
 
-refreshSignal = Signal.subscribe refreshChannel
+refreshSignal =
+    Signal.subscribe refreshChannel
 
 waitingForData : Signal Bool
 waitingForData =
