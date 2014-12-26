@@ -1,5 +1,7 @@
 module Types where
 
+import Date (Date)
+
 type alias Uid = String
 
 type alias Meters = Int
@@ -23,6 +25,7 @@ type alias State = {
         stations: List Station,
         userLocation : Maybe Location,
         stationView : Maybe Uid,
-        updateTime : Int,
-        waitingForData : Bool
+        updateTime : Date,
+        waitingForData : Bool,
+        flexSupported : Bool
     }
