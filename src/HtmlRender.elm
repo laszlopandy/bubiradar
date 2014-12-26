@@ -87,6 +87,17 @@ renderHeader state =
         ]
 
 
+renderSpinner : Html
+renderSpinner =
+    Html.div
+        [ class "spinner" ]
+        [
+            Html.div [ class "bounce1" ] [],
+            Html.div [ class "bounce2" ] [],
+            Html.div [ class "bounce3" ] []
+        ]
+
+
 state : State
 state = {
         stations = [],
@@ -98,12 +109,16 @@ state = {
     }
 
 
-renderHtml : Html
-renderHtml =
+renderHtml : State -> Html
+renderHtml state =
     Html.div
         [ class "container" ]
         [ renderHeader state ]
 
 
 render : Element
-render = Html.toElement 400 600 renderHtml
+render = 
+    Html.toElement 400 600 <|
+        if List.isEmpty state.stations
+            then renderSpinner
+            else renderHtml state
