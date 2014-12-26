@@ -3,11 +3,12 @@ import Signal
 import Signal ((<~), (~), Signal)
 import Text (asText)
 import Http
-import Graphics.Element (flow, down)
 import String
 import Result
 import List
 import Maybe
+import HtmlRender
+import Types (Location, Station, Meters)
 import Debug
 
 {- Inward ports -}
@@ -41,28 +42,6 @@ makePrettyName unique_name =
                     |> String.trim
             | otherwise ->
                 Debug.crash unique_name
-
-
-toFixed : Int -> Float -> String
-toFixed exp num =
-    let factor = 10 ^ exp
-        floatRound = toFloat << round
-    in
-        -- TODO: pad with zeros
-        toString ((floatRound (num * factor)) / factor)
-
-
-makePrettyDistance : Meters -> String
-makePrettyDistance dist =
-    if  | dist <= 10 ->
-            "10m"
-        | dist < 1000 ->
-            toString (toFixed -1 dist) ++ "m"
-        | otherwise ->
-            let kilos = dist / 1000
-                decimalPlaces = if kilos < 10.0 then 1 else 0
-            in
-                toString (toFixed decimalPlaces kilos) ++ "km"
 
 
 makeStation : StationXml -> Result String Station
@@ -127,7 +106,7 @@ getBubiData =
     in
         handleResp <~ Http.sendGet (Signal.constant url)
 
-
+{-
 main =
     Signal.map
         asText
@@ -135,7 +114,8 @@ main =
             (,)
             userLocation
             (Signal.map2 stations stationXmlIn userLocation))
-
+-}
+main = HtmlRender.render
 
 type alias StationXml = {
         uid : String,
@@ -144,31 +124,4 @@ type alias StationXml = {
         unique_name : String,
         num_bikes : String,
         max_bikes : String
-    }
-
-type alias Location = {
-        lat : Float,
-        lng : Float
-    }
-
-type alias Uid = String
-
-type alias Meters = Int
-
-type alias Station = {
-        uid : Uid,
-        location : Location,
-        unique_name : String,
-        name : String,
-        num_bikes : Int,
-        max_bikes : Int,
-        distance : Maybe Meters
-    }
-
-type alias State = {
-        stations: List Station,
-        userLocation : Maybe Location,
-        stationView : Maybe Uid,
-        updateTime : Int,
-        waitingForData : Bool
     }
