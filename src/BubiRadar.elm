@@ -141,6 +141,12 @@ refreshChannel = Signal.channel ()
 
 refreshSignal = Signal.subscribe refreshChannel
 
+waitingForData : Signal Bool
+waitingForData =
+    Signal.merge
+        (Signal.map (always True) refreshSignal)
+        (Signal.map (always False) getBubiData)
+
 
 updateState action oldState =
     case action of
@@ -154,7 +160,6 @@ main =
     let state = Signal.foldp updateState initialState (Signal.subscribe actionChannel)
         stations = Signal.map2 makeStationList stationXmlIn userLocation
         updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
-        waitingForData = Signal.constant False
         renderParams =
             (RenderParams actionChannel refreshChannel)
                 <~ state
