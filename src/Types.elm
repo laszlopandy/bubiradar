@@ -1,6 +1,7 @@
 module Types where
 
 import Date (Date)
+import Signal
 
 type alias Uid = String
 
@@ -25,7 +26,12 @@ type alias State = {
         stationView : Maybe Uid
     }
 
+type Action
+    = ViewMap Uid
+    | ViewList
+
 type alias RenderParams = {
+        actionChannel : Signal.Channel Action,
         state : State,
         stations: List Station,
         userLocation : Maybe Location,

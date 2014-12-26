@@ -9,7 +9,7 @@ import String
 import Time
 
 import HtmlRender
-import Types (Location, Station, RenderParams, State, Meters, Uid)
+import Types (Location, Station, RenderParams, State, Meters, Uid, Action(..))
 
 {- Inward ports -}
 port flexSupported : Signal Bool
@@ -130,7 +130,8 @@ main =
             (Signal.map2 stations stationXmlIn userLocation))
 -}
 
-actionChannel = Signal.channel Nop
+actionChannel : Signal.Channel Action
+actionChannel = Signal.channel ViewList
 
 
 updateState action oldState =
@@ -139,8 +140,7 @@ updateState action oldState =
             { oldState | stationView <- Just uid }
         ViewList ->
             { oldState | stationView <- Nothing }
-        Nop ->
-            oldState
+
 
 main =
     let state = Signal.foldp updateState initialState (Signal.subscribe actionChannel)
@@ -148,7 +148,7 @@ main =
         updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
         waitingForData = Signal.constant False
         renderParams =
-            RenderParams
+            RenderParams actionChannel
                 <~ state
                 ~ stations
                 ~ userLocation
@@ -157,12 +157,6 @@ main =
                 ~ flexSupported
     in
         Signal.map HtmlRender.render renderParams
-
-
-type Action
-    = ViewMap Uid
-    | ViewList
-    | Nop
 
 
 type alias StationXml = {
