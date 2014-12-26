@@ -7,10 +7,12 @@ import Html
 import Html (Html)
 import Html.Attributes
 import Html.Attributes (class, src, height, href)
+import Html.Events (onClick)
 import List
+import Signal
 import String
 
-import Types (Station, RenderParams, Meters)
+import Types (Station, RenderParams, Meters, Action(..))
 
 
 toFixed : Int -> Float -> String
@@ -87,8 +89,8 @@ renderHeader state =
         ]
 
 
-renderStation : Bool -> Station -> Html
-renderStation flexSupported station =
+renderStation : RenderParams -> Station -> Html
+renderStation params station =
     let containerClasses =
             classList [
                     ("list_item_container", True),
@@ -104,7 +106,7 @@ renderStation flexSupported station =
                     Html.div
                         [ classList [
                                 ("name_group", True),
-                                ("no-flex", not flexSupported)
+                                ("no-flex", not params.flexSupported)
                             ]
                         ]
                         [
@@ -117,7 +119,7 @@ renderStation flexSupported station =
                 [
                     classList [
                             ("num_bikes", True),
-                            ("no-flex", not flexSupported)
+                            ("no-flex", not params.flexSupported)
                         ]
                 ]
                 [
@@ -134,8 +136,9 @@ renderStation flexSupported station =
             [ class "list_item" ]
             [
                 Html.div
-                    [ containerClasses
-                        -- TODO: onClick setStationView station.uid
+                    [ 
+                        containerClasses,
+                        onClick (Signal.send params.actionChannel (ViewMap station.uid))
                     ]
                     [ leftDiv, rightDiv ]
             ]
@@ -144,7 +147,7 @@ renderStation flexSupported station =
 renderStations state =
     Html.ul
         [ class "station_list" ]
-        (List.map (renderStation state.flexSupported) state.stations)
+        (List.map (renderStation state) state.stations)
 
 
 renderSpinner : Html
