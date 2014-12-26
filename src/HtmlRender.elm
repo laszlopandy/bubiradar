@@ -1,14 +1,15 @@
 module HtmlRender where
 
+import Date
+import Date (Date)
 import Graphics.Element (Element)   
 import Html
 import Html (Html)
 import Html.Attributes
 import Html.Attributes (class, src, height, href)
-import String
-import Date
-import Date (Date)
 import List
+import String
+
 import Types (Station, State, Meters)
 
 

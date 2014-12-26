@@ -1,16 +1,17 @@
-import Mouse
-import Signal
-import Signal ((<~), (~), Signal)
-import Text (asText)
-import Http
-import String
-import Result
-import List
-import Maybe
-import HtmlRender
-import Types (Location, Station, State, Meters)
 import Date
 import Debug
+import Http
+import List
+import Maybe
+import Mouse
+import Result
+import Signal
+import Signal ((<~), (~), Signal)
+import String
+import Text (asText)
+
+import HtmlRender
+import Types (Location, Station, State, Meters)
 
 {- Inward ports -}
 port userLocation : Signal (Maybe Location)
