@@ -50,40 +50,41 @@ classNameList list =
         |> Html.Attributes.class
 
 
-renderHeader : State -> Html
-renderHeader state =
-    let refreshButton =
-            Html.button
+refreshButton state =
+    Html.button
+        [
+            classNameList [
+                ("refresh_button", True),
+                ("no-flex", not state.flexSupported)
+            ]
+            -- TODO: onClick
+        ]
+        [
+            Html.img
                 [
                     classNameList [
-                        ("refresh_button", True),
-                        ("no-flex", not state.flexSupported)
-                    ]
-                    -- TODO: onClick
+                        ("refresh_image", True),
+                        ("spinning", state.waitingForData)
+                    ],
+                    src "assets/refresh.svg",
+                    height 15
                 ]
-                [
-                    Html.img
-                        [
-                            classNameList [
-                                ("refresh_image", True),
-                                ("spinning", state.waitingForData)
-                            ],
-                            src "assets/refresh.svg",
-                            height 15
-                        ]
-                        [],
-                    Html.text (makePrettyTime state.updateTime)
-                ]
-    in
-        Html.div
-            [ class "header_container" ]
-            [ Html.div
-                [ class "header" ]
-                [
-                    Html.text "Bubi Radar",
-                    refreshButton
-                ]
+                [],
+            Html.text (makePrettyTime state.updateTime)
+        ]
+
+
+renderHeader : State -> Html
+renderHeader state =
+    Html.div
+        [ class "header_container" ]
+        [ Html.div
+            [ class "header" ]
+            [
+                Html.text "Bubi Radar",
+                refreshButton state
             ]
+        ]
 
 
 state : State
