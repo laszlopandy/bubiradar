@@ -89,17 +89,12 @@ renderHeader state =
 
 renderStation : Bool -> Station -> Html
 renderStation flexSupported station =
-    let backgroundDiv =
-            Html.div
-                [
-                    classList [
-                            ("list_item_container", True),
-                            ("list_item_no_bikes", station.num_bikes == 0),
-                            ("list_item_few_bikes", station.num_bikes <= 3 && station.num_bikes > 0)
-                        ]
-                    -- TODO: onClick setStationView station.uid
+    let containerClasses =
+            classList [
+                    ("list_item_container", True),
+                    ("list_item_no_bikes", station.num_bikes == 0),
+                    ("list_item_few_bikes", station.num_bikes <= 3 && station.num_bikes > 0)
                 ]
-                []
 
         leftDiv =
             case station.distance of
@@ -138,9 +133,11 @@ renderStation flexSupported station =
         Html.li
             [ class "list_item" ]
             [
-                backgroundDiv,
-                leftDiv,
-                rightDiv
+                Html.div
+                    [ containerClasses
+                        -- TODO: onClick setStationView station.uid
+                    ]
+                    [ leftDiv, rightDiv ]
             ]
 
 
