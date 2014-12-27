@@ -6,13 +6,14 @@ import Graphics.Element (Element)
 import Html
 import Html (Html)
 import Html.Attributes
-import Html.Attributes (class, src, height, href)
+import Html.Attributes (class, height, href, seamless, src, width)
 import Html.Events (onClick)
 import List
+import Maybe
 import Signal
 import String
 
-import Types (Station, RenderParams, Meters, Action(..))
+import Types (Action(..), Meters, RenderParams, Station, Uid)
 
 
 toFixed : Int -> Float -> String
@@ -51,6 +52,27 @@ classList list =
         |> List.map fst
         |> String.join " "
         |> Html.Attributes.class
+
+
+listFirstOf : (a -> Bool) -> List a -> Maybe a
+listFirstOf pred list =
+    case list of
+        x :: xs ->
+            if pred x
+                then Just x
+                else listFirstOf pred xs
+        [] ->
+            Nothing
+
+
+getStationFromUid : Maybe Uid -> RenderParams -> Maybe Station
+getStationFromUid maybeUid params =
+    let findMatching uid station =
+            station.uid == uid
+        filterUid uid =
+            listFirstOf (findMatching uid) params.stations
+    in
+        maybeUid `Maybe.andThen` filterUid
 
 
 refreshButton params =
@@ -172,7 +194,7 @@ renderAboutLink =
             ]
 
 
-renderHtml params =
+renderStationList params =
     Html.div
         [ class "container" ]
         [
@@ -180,6 +202,60 @@ renderHtml params =
             renderStations params,
             renderAboutLink
         ]
+
+
+renderStationView userLocation station actionChannel =
+    let locationToString l = toString l.lat ++ "," ++ toString l.lng
+        mapOrigin = Maybe.map locationToString userLocation |> Maybe.withDefault "Budapest"
+        mapDest = locationToString station.location
+        iframeUrl =
+            "https://www.google.com/maps/embed/v1/directions" ++
+                "?key=AIzaSyA1ko9DhkUQvO2N7mIwroQqFJ8ax1aRP6g" ++
+                "&origin=" ++ mapOrigin ++
+                "&destination=" ++ mapDest ++
+                "&mode=walking"
+        backButton =
+            Html.div
+                [ class "back_button_container" ]
+                [
+                    Html.button
+                        [
+                            class "back_button",
+                            onClick (Signal.send actionChannel ViewList)
+                        ]
+                        [],
+                    Html.img
+                        [
+                            src "assets/back-arrow.svg",
+                            height 40
+                        ]
+                        []
+                ]
+        mapIFrame =
+            Html.iframe
+                [
+                    width 400,
+                    height 400,
+                    seamless True,
+                    src iframeUrl
+                ]
+                []
+
+    in
+        Html.div
+            [ class "container" ]
+            [
+                backButton,
+                mapIFrame
+            ]
+
+
+renderHtml params =
+    case getStationFromUid params.state.stationView params of
+        Nothing ->
+            renderStationList params
+        Just station ->
+            renderStationView params.userLocation station params.actionChannel
 
 
 render : RenderParams -> Element
