@@ -144,6 +144,7 @@ refreshChannel =
 refreshSignal =
     Signal.subscribe refreshChannel
 
+
 waitingForData : Signal Bool
 waitingForData =
     Signal.merge

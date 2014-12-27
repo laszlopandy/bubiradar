@@ -53,38 +53,38 @@ classList list =
         |> Html.Attributes.class
 
 
-refreshButton state =
+refreshButton params =
     Html.button
         [
             classList [
                 ("refresh_button", True),
-                ("no-flex", not state.flexSupported)
+                ("no-flex", not params.flexSupported)
             ],
-            onClick (Signal.send state.refreshChannel ())
+            onClick (Signal.send params.refreshChannel ())
         ]
         [
             Html.img
                 [
                     classList [
                         ("refresh_image", True),
-                        ("spinning", state.waitingForData)
+                        ("spinning", params.waitingForData)
                     ],
                     src "assets/refresh.svg",
                     height 15
                 ]
                 [],
-            Html.text (makePrettyTime state.updateTime)
+            Html.text (makePrettyTime params.updateTime)
         ]
 
 
-renderHeader state =
+renderHeader params =
     Html.div
         [ class "header_container" ]
         [ Html.div
             [ class "header" ]
             [
                 Html.text "Bubi Radar",
-                refreshButton state
+                refreshButton params
             ]
         ]
 
@@ -144,10 +144,10 @@ renderStation params station =
             ]
 
 
-renderStations state =
+renderStations params =
     Html.ul
         [ class "station_list" ]
-        (List.map (renderStation state) state.stations)
+        (List.map (renderStation params) params.stations)
 
 
 renderSpinner : Html
@@ -172,19 +172,19 @@ renderAboutLink =
             ]
 
 
-renderHtml state =
+renderHtml params =
     Html.div
         [ class "container" ]
         [
-            renderHeader state,
-            renderStations state,
+            renderHeader params,
+            renderStations params,
             renderAboutLink
         ]
 
 
 render : RenderParams -> Element
-render state =
+render params =
     Html.toElement 400 600 <|
-        if List.isEmpty state.stations
+        if List.isEmpty params.stations
             then renderSpinner
-            else renderHtml state
+            else renderHtml params
