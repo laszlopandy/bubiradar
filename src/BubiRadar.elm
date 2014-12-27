@@ -15,6 +15,7 @@ import Types (Location, Station, RenderParams, State, Meters, Uid, Action(..))
 port flexSupported : Signal Bool
 port userLocation : Signal (Maybe Location)
 port stationXmlIn : Signal (List StationXml)
+port windowDimensions : Signal (Int, Int)
 {- Outward ports -}
 port stationXmlOut : Signal (Maybe String)
 port stationXmlOut = getBubiData
@@ -172,6 +173,7 @@ main =
                 ~ updateTime
                 ~ waitingForData
                 ~ flexSupported
+                ~ windowDimensions
     in
         Signal.map HtmlRender.render renderParams
 

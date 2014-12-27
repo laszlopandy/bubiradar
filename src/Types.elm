@@ -38,5 +38,6 @@ type alias RenderParams = {
         userLocation : Maybe Location,
         updateTime : Date,
         waitingForData : Bool,
-        flexSupported : Bool
+        flexSupported : Bool,
+        windowDimensions : (Int, Int)
     }

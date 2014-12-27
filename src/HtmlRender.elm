@@ -204,9 +204,9 @@ renderStationList params =
         ]
 
 
-renderStationView userLocation station actionChannel =
+renderStationView params station =
     let locationToString l = toString l.lat ++ "," ++ toString l.lng
-        mapOrigin = Maybe.map locationToString userLocation |> Maybe.withDefault "Budapest"
+        mapOrigin = Maybe.map locationToString params.userLocation |> Maybe.withDefault "Budapest"
         mapDest = locationToString station.location
         iframeUrl =
             "https://www.google.com/maps/embed/v1/directions" ++
@@ -221,7 +221,7 @@ renderStationView userLocation station actionChannel =
                     Html.button
                         [
                             class "back_button",
-                            onClick (Signal.send actionChannel ViewList)
+                            onClick (Signal.send params.actionChannel ViewList)
                         ]
                         [],
                     Html.img
@@ -231,11 +231,12 @@ renderStationView userLocation station actionChannel =
                         ]
                         []
                 ]
+        (windowWidth, windowHeight) = params.windowDimensions
         mapIFrame =
             Html.iframe
                 [
-                    width 400,
-                    height 400,
+                    width (min 400 windowWidth),
+                    height windowHeight,
                     seamless True,
                     src iframeUrl
                 ]
@@ -255,7 +256,7 @@ renderHtml params =
         Nothing ->
             renderStationList params
         Just station ->
-            renderStationView params.userLocation station params.actionChannel
+            renderStationView params station
 
 
 render : RenderParams -> Element
