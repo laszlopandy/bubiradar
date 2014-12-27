@@ -63,6 +63,7 @@ body {
 }
 
 .container {
+	position: relative;
 	width: 100%;
 	height: 100%;
 	font-family: sans-serif;
@@ -158,10 +159,6 @@ body {
 	padding-left: 3px;
 }
 
-.back_button_container {
-	position: fixed;
-}
-
 .back_button {
 	position: absolute;
 	background-color: white;
@@ -177,9 +174,9 @@ body {
 }
 
 .back_button_container > img {
-	position: fixed;
-	top: -3px;
-	left: 2px;
+	position: absolute;
+	margin-top: -3px;
+	margin-left: 2px;
 	pointer-events: none;
 }
 
@@ -230,6 +227,7 @@ body {
 	.container {
 		width: 400px;
 		margin: auto;
+		overflow: hidden;
 	}
 
 	.header {
@@ -479,7 +477,7 @@ var bubi = React.renderComponent(
 	BubiInterface({
 		reloadData: reloadData,
 		windowHeight: window.innerHeight,
-		windowWidth: window.innerWidth,
+		windowWidth: Math.min(400, window.innerWidth),
 	}),
 	document.getElementById('react_container'));
 reloadData();
