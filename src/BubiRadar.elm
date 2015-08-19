@@ -5,6 +5,7 @@ import Maybe
 import Result
 import Signal exposing ((<~), (~), Signal)
 import String
+import Task exposing (Task)
 import Time
 import Text
 
@@ -18,10 +19,14 @@ port stationXmlIn : Signal (List StationXml)
 port windowDimensions : Signal (Int, Int)
 {- Outward ports -}
 port stationXmlOut : Signal (Maybe String)
-port stationXmlOut = getBubiData
+port stationXmlOut = bubiDataMailbox.signal
 
 port userLocationRequest : Signal ()
 port userLocationRequest = Signal.constant ()
+
+{- Task executing ports -}
+port execGetBubiData : Signal (Task () ())
+port execGetBubiData = Signal.map (always getBubiData) refreshMailbox.signal
 
 
 map2 : (a -> b -> c) -> Result e a -> Result e b -> Result e c
@@ -105,17 +110,17 @@ makeStationList xmlList loc =
                     |> List.sortBy (.distance >> Maybe.withDefault 0)
 
 
-getBubiData : Signal (Maybe String)
+getBubiData : Task () ()
 getBubiData =
     let url = "https://nextbike.net/maps/nextbike-live.xml?domains=mb"
-        handleResp resp =
-            case resp of
-                Http.Success data -> Just data
-                Http.Waiting -> Nothing
-                Http.Failure _ _ -> Nothing
-        urlSignal = Signal.map (always url) refreshMailbox.signal
     in
-        handleResp <~ Http.sendGet urlSignal
+        Signal.send waitingForData.address True
+            |> task_andThen (\_ -> Http.getString url)
+            |> Task.toMaybe
+            |> task_andThen (\data -> Signal.send bubiDataMailbox.address data)
+            |> task_andThen (\_ -> Signal.send waitingForData.address False)
+
+task_andThen a f = Task.andThen f a
 
 initialState : State
 initialState = {
@@ -132,6 +137,11 @@ main =
             (Signal.map2 stations stationXmlIn userLocation))
 -}
 
+bubiDataMailbox : Signal.Mailbox (Maybe String)
+bubiDataMailbox =
+    Signal.mailbox Nothing
+
+
 actionMailbox : Signal.Mailbox Action
 actionMailbox =
     Signal.mailbox ViewList
@@ -142,11 +152,9 @@ refreshMailbox =
     Signal.mailbox ()
 
 
-waitingForData : Signal Bool
+waitingForData : Signal.Mailbox Bool
 waitingForData =
-    Signal.merge
-        (Signal.map (always True) refreshMailbox.signal)
-        (Signal.map (always False) getBubiData)
+    Signal.mailbox False
 
 
 updateState action oldState =
@@ -167,7 +175,7 @@ main =
                 ~ stations
                 ~ userLocation
                 ~ updateTime
-                ~ waitingForData
+                ~ waitingForData.signal
                 ~ flexSupported
                 ~ windowDimensions
     in
