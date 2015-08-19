@@ -3,13 +3,13 @@ import Http
 import List
 import Maybe
 import Result
-import Signal
-import Signal ((<~), (~), Signal)
+import Signal exposing ((<~), (~), Signal)
 import String
 import Time
+import Text
 
 import HtmlRender
-import Types (Location, Station, RenderParams, State, Meters, Uid, Action(..))
+import Types exposing (Location, Station, RenderParams, State, Meters, Uid, Action(..))
 
 {- Inward ports -}
 port flexSupported : Signal Bool
@@ -113,7 +113,7 @@ getBubiData =
                 Http.Success data -> Just data
                 Http.Waiting -> Nothing
                 Http.Failure _ _ -> Nothing
-        urlSignal = Signal.map (always url) refreshSignal
+        urlSignal = Signal.map (always url) refreshMailbox.signal
     in
         handleResp <~ Http.sendGet urlSignal
 
@@ -132,24 +132,20 @@ main =
             (Signal.map2 stations stationXmlIn userLocation))
 -}
 
-actionChannel : Signal.Channel Action
-actionChannel =
-    Signal.channel ViewList
+actionMailbox : Signal.Mailbox Action
+actionMailbox =
+    Signal.mailbox ViewList
 
 
-refreshChannel : Signal.Channel ()
-refreshChannel =
-    Signal.channel ()
-
-
-refreshSignal =
-    Signal.subscribe refreshChannel
+refreshMailbox : Signal.Mailbox ()
+refreshMailbox =
+    Signal.mailbox ()
 
 
 waitingForData : Signal Bool
 waitingForData =
     Signal.merge
-        (Signal.map (always True) refreshSignal)
+        (Signal.map (always True) refreshMailbox.signal)
         (Signal.map (always False) getBubiData)
 
 
@@ -162,11 +158,11 @@ updateState action oldState =
 
 
 main =
-    let state = Signal.foldp updateState initialState (Signal.subscribe actionChannel)
+    let state = Signal.foldp updateState initialState actionMailbox.signal
         stations = Signal.map2 makeStationList stationXmlIn userLocation
         updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
         renderParams =
-            (RenderParams actionChannel refreshChannel)
+            (RenderParams actionMailbox.address refreshMailbox.address)
                 <~ state
                 ~ stations
                 ~ userLocation

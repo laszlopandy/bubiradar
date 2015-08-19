@@ -1,19 +1,16 @@
 module HtmlRender where
 
-import Date
-import Date (Date)
-import Graphics.Element (Element)   
-import Html
-import Html (Html)
-import Html.Attributes
-import Html.Attributes (class, height, href, seamless, src, width)
-import Html.Events (onClick)
+import Date exposing (Date)
+import Graphics.Element exposing (Element)
+import Html exposing (Html)
+import Html.Attributes exposing (class, height, href, seamless, src, width)
+import Html.Events exposing (onClick)
 import List
 import Maybe
 import Signal
 import String
 
-import Types (Action(..), Meters, RenderParams, Station, Uid)
+import Types exposing (Action(..), Meters, RenderParams, Station, Uid)
 
 
 toFixed : Int -> Float -> String
@@ -82,7 +79,7 @@ refreshButton params =
                 ("refresh_button", True),
                 ("no-flex", not params.flexSupported)
             ],
-            onClick (Signal.send params.refreshChannel ())
+            onClick params.refreshChannel ()
         ]
         [
             Html.img
@@ -160,7 +157,7 @@ renderStation params station =
                 Html.div
                     [ 
                         containerClasses,
-                        onClick (Signal.send params.actionChannel (ViewMap station.uid))
+                        onClick params.actionChannel (ViewMap station.uid)
                     ]
                     [ leftDiv, rightDiv ]
             ]
@@ -221,7 +218,7 @@ renderStationView params station =
                     Html.button
                         [
                             class "back_button",
-                            onClick (Signal.send params.actionChannel ViewList)
+                            onClick params.actionChannel ViewList
                         ]
                         [],
                     Html.img
@@ -259,9 +256,8 @@ renderHtml params =
             renderStationView params station
 
 
-render : RenderParams -> Element
+render : RenderParams -> Html
 render params =
-    Html.toElement 400 600 <|
-        if List.isEmpty params.stations
-            then renderSpinner
-            else renderHtml params
+    if List.isEmpty params.stations
+        then renderSpinner
+        else renderHtml params

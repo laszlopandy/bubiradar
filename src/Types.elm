@@ -1,6 +1,6 @@
 module Types where
 
-import Date (Date)
+import Date exposing (Date)
 import Signal
 
 type alias Uid = String
@@ -31,8 +31,8 @@ type Action
     | ViewList
 
 type alias RenderParams = {
-        actionChannel : Signal.Channel Action,
-        refreshChannel : Signal.Channel (),
+        actionChannel : Signal.Address Action,
+        refreshChannel : Signal.Address (),
         state : State,
         stations: List Station,
         userLocation : Maybe Location,
