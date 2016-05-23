@@ -279,10 +279,8 @@ console.log("Flex supported: " + FLEX_SUPPORTED);
 
 var div = document.getElementById('elm_container');
 div.innerHTML = '';
-var bubiRadar = Elm.embed(Elm.Main, div, {
+var bubiRadar = Elm.Main.embed(div, {
 	flexSupported: FLEX_SUPPORTED,
-	userLocation: null,
-	stationXmlIn: [],
 	windowDimensions: [ window.innerWidth, window.innerHeight ],
 });
 
@@ -296,7 +294,6 @@ function getUserLocation() {
 }
 
 bubiRadar.ports.userLocationRequest.subscribe(getUserLocation);
-getUserLocation();
 
 bubiRadar.ports.stationXmlOut.subscribe(function(xmlString) {
 	var parser = new DOMParser();

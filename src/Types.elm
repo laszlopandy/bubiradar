@@ -1,7 +1,6 @@
-module Types where
+module Types exposing (..)
 
 import Date exposing (Date)
-import Signal
 
 type alias Uid = String
 
@@ -23,21 +22,30 @@ type alias Station = {
     }
 
 type alias State = {
-        stationView : Maybe Uid
+        flexSupported : Bool,
+        stationView : Maybe Uid,
+        stations: List Station,
+        userLocation : Maybe Location,
+        updateTime : Maybe Date,
+        waitingForData : Bool,
+        windowDimensions : (Int, Int)
+    }
+
+type alias StationXml = {
+        uid : String,
+        lat : String,
+        lng : String,
+        unique_name : String,
+        num_bikes : String,
+        max_bikes : String
     }
 
 type Action
     = ViewMap Uid
     | ViewList
-
-type alias RenderParams = {
-        actionChannel : Signal.Address Action,
-        refreshChannel : Signal.Address (),
-        state : State,
-        stations: List Station,
-        userLocation : Maybe Location,
-        updateTime : Date,
-        waitingForData : Bool,
-        flexSupported : Bool,
-        windowDimensions : (Int, Int)
-    }
+    | Refresh
+    | NoOp
+    | BubiData String
+    | StationsData (List StationXml)
+    | UserLocation Location
+    | UpdateTime Date

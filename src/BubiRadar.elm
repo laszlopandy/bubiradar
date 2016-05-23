@@ -1,32 +1,27 @@
+port module Main exposing (main)
+
 import Date
+import Html exposing (Html)
+import Html.App
 import Http
 import List
 import Maybe
+import Platform.Cmd exposing ((!), Cmd)
 import Result
-import Signal exposing ((<~), (~), Signal)
 import String
 import Task exposing (Task)
 import Time
-import Text
 
 import HtmlRender
-import Types exposing (Location, Station, RenderParams, State, Meters, Uid, Action(..))
+import Types exposing (Location, Station, StationXml, State, Meters, Uid, Action(..))
 
 {- Inward ports -}
-port flexSupported : Signal Bool
-port userLocation : Signal (Maybe Location)
-port stationXmlIn : Signal (List StationXml)
-port windowDimensions : Signal (Int, Int)
+port userLocation : (Location -> msg) -> Sub msg
+port stationXmlIn : (List StationXml -> msg) -> Sub msg
+port windowDimensions : ((Int, Int) -> msg) -> Sub msg
 {- Outward ports -}
-port stationXmlOut : Signal (Maybe String)
-port stationXmlOut = bubiDataMailbox.signal
-
-port userLocationRequest : Signal ()
-port userLocationRequest = Signal.constant ()
-
-{- Task executing ports -}
-port execGetBubiData : Signal (Task () ())
-port execGetBubiData = Signal.map (always getBubiData) refreshMailbox.signal
+port stationXmlOut : String -> Cmd msg
+port userLocationRequest : () -> Cmd msg
 
 
 map2 : (a -> b -> c) -> Result e a -> Result e b -> Result e c
@@ -49,13 +44,14 @@ makeLocation lat lng =
 makePrettyName unique_name =
     let delim = String.slice 4 5 unique_name
     in
-        if  | delim == "-" || delim == " " ->
-                unique_name
-                    |> String.dropLeft 5
-                    |> String.trim
-            | otherwise ->
-                unique_name
-                    |> String.trim
+        if delim == "-" || delim == " " then
+            unique_name
+                |> String.dropLeft 5
+                |> String.trim
+
+        else
+            unique_name
+                |> String.trim
 
 
 makeStation : StationXml -> Result String Station
@@ -92,9 +88,15 @@ calcDistance a b =
 updateStationDistance : Location -> Station -> Station
 updateStationDistance userLocation station =
     { station |
-        distance <- Just (calcDistance userLocation station.location)
+        distance = Just (calcDistance userLocation station.location)
     }
 
+
+updateStationList : List Station -> Location -> List Station
+updateStationList list userLocation =
+    list
+        |> List.map (updateStationDistance userLocation)
+        |> List.sortBy (.distance >> Maybe.withDefault 0)
 
 makeStationList : List StationXml -> Maybe Location -> List Station
 makeStationList xmlList loc =
@@ -105,88 +107,111 @@ makeStationList xmlList loc =
             Nothing ->
                 list |> List.sortBy .name
             Just userLocation ->
-                list
-                    |> List.map (updateStationDistance userLocation)
-                    |> List.sortBy (.distance >> Maybe.withDefault 0)
+                updateStationList list userLocation
 
 
-getBubiData : Task () ()
+getBubiData : Task Http.Error String
 getBubiData =
-    let url = "https://nextbike.net/maps/nextbike-live.xml?domains=mb"
-    in
-        Signal.send waitingForData.address True
-            |> task_andThen (\_ -> Http.getString url)
-            |> Task.toMaybe
-            |> task_andThen (\data -> Signal.send bubiDataMailbox.address data)
-            |> task_andThen (\_ -> Signal.send waitingForData.address False)
+    Http.getString "https://nextbike.net/maps/nextbike-live.xml?domains=mb"
 
-task_andThen a f = Task.andThen f a
+--main =
+--    let state = Signal.foldp updateState initialState actionMailbox.signal
+--        stations = Signal.map2 makeStationList stationXmlIn userLocation
+--        updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
+--        renderParams =
+--            (RenderParams actionMailbox.address refreshMailbox.address)
+--                <~ state
+--                ~ stations
+--                ~ userLocation
+--                ~ updateTime
+--                ~ waitingForData.signal
+--                ~ flexSupported
+--                ~ windowDimensions
+--    in
+--        Signal.map HtmlRender.render renderParams
 
-initialState : State
-initialState = {
-        stationView = Nothing
-    }
+init : Flags -> (State, Cmd Action)
+init flags =
+    {
+        flexSupported = flags.flexSupported,
+        stationView = Nothing,
+        stations = [],
+        userLocation = Nothing,
+        updateTime = Nothing,
+        waitingForData = True,
+        windowDimensions = flags.windowDimensions
+    } ! [
+        Task.perform (\_ -> NoOp) BubiData getBubiData,
+        userLocationRequest ()
+    ]
 
-{-
-main =
-    Signal.map
-        asText
-        (Signal.map2
-            (,)
-            userLocation
-            (Signal.map2 stations stationXmlIn userLocation))
--}
+setUpdateTime : Cmd Action
+setUpdateTime =
+    Task.perform (\_ -> NoOp) UpdateTime Date.now
 
-bubiDataMailbox : Signal.Mailbox (Maybe String)
-bubiDataMailbox =
-    Signal.mailbox Nothing
-
-
-actionMailbox : Signal.Mailbox Action
-actionMailbox =
-    Signal.mailbox ViewList
-
-
-refreshMailbox : Signal.Mailbox ()
-refreshMailbox =
-    Signal.mailbox ()
-
-
-waitingForData : Signal.Mailbox Bool
-waitingForData =
-    Signal.mailbox False
-
-
-updateState action oldState =
+update : Action -> State -> (State, Cmd Action)
+update action state =
     case action of
-        ViewMap uid ->
-            { oldState | stationView <- Just uid }
-        ViewList ->
-            { oldState | stationView <- Nothing }
+        NoOp ->
+            state ! []
 
+        ViewMap uid ->
+            { state |
+                stationView = Just uid
+            } ! []
+        ViewList ->
+            { state |
+                stationView = Nothing
+            } ! []
+        StationsData list ->
+            { state |
+                stations = makeStationList list state.userLocation
+            } ! [
+                setUpdateTime
+            ]
+        UserLocation location ->
+            { state |
+                userLocation = Just location,
+                stations = updateStationList state.stations location
+            } ! [
+                setUpdateTime
+            ]
+        UpdateTime date ->
+            { state |
+                updateTime = Just date
+            } ! []
+
+        Refresh ->
+            { state |
+                waitingForData = True
+            } ! [
+                Task.perform (\_ -> NoOp) BubiData getBubiData
+            ]
+        BubiData data ->
+            { state |
+                waitingForData = False
+            } ! [
+                stationXmlOut data
+            ]
+
+
+subscriptions : State -> Sub Action
+subscriptions state =
+    Sub.batch [
+        stationXmlIn StationsData,
+        userLocation UserLocation
+    ]
 
 main =
-    let state = Signal.foldp updateState initialState actionMailbox.signal
-        stations = Signal.map2 makeStationList stationXmlIn userLocation
-        updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
-        renderParams =
-            (RenderParams actionMailbox.address refreshMailbox.address)
-                <~ state
-                ~ stations
-                ~ userLocation
-                ~ updateTime
-                ~ waitingForData.signal
-                ~ flexSupported
-                ~ windowDimensions
-    in
-        Signal.map HtmlRender.render renderParams
+    Html.App.programWithFlags
+        {
+            init = init,
+            update = update,
+            subscriptions = subscriptions,
+            view = HtmlRender.render
+        }
 
-
-type alias StationXml = {
-        uid : String,
-        lat : String,
-        lng : String,
-        unique_name : String,
-        num_bikes : String,
-        max_bikes : String
-    }
+type alias Flags = {
+    flexSupported : Bool,
+    windowDimensions : (Int, Int)
+}

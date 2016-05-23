@@ -1,16 +1,14 @@
-module HtmlRender where
+module HtmlRender exposing (..)
 
 import Date exposing (Date)
-import Graphics.Element exposing (Element)
 import Html exposing (Html)
-import Html.Attributes exposing (class, height, href, seamless, src, width)
+import Html.Attributes exposing (classList, class, height, href, seamless, src, width)
 import Html.Events exposing (onClick)
 import List
 import Maybe
-import Signal
 import String
 
-import Types exposing (Action(..), Meters, RenderParams, Station, Uid)
+import Types exposing (Action(..), Meters, State, Station, Uid)
 
 
 toFixed : Int -> Float -> String
@@ -24,15 +22,17 @@ toFixed exp num =
 
 makePrettyDistance : Meters -> String
 makePrettyDistance dist =
-    if  | dist <= 10 ->
-            "10m"
-        | dist < 1000 ->
-            toFixed -1 dist ++ "m"
-        | otherwise ->
-            let kilos = dist / 1000
-                decimalPlaces = if kilos < 10.0 then 1 else 0
-            in
-                toFixed decimalPlaces kilos ++ "km"
+    if dist <= 10 then
+        "10m"
+
+    else if dist < 1000 then
+        toFixed -1 dist ++ "m"
+
+    else
+        let kilos = dist / 1000
+            decimalPlaces = if kilos < 10.0 then 1 else 0
+        in
+            toFixed decimalPlaces kilos ++ "km"
 
 
 makePrettyTime : Date -> String
@@ -40,15 +40,6 @@ makePrettyTime t =
     let padded m = String.padLeft 2 '0' (toString m)
     in
         toString (Date.hour t) ++ ":" ++ padded (Date.minute t)
-
-
-classList : List (String, Bool) -> Html.Attribute
-classList list =
-    list
-        |> List.filter snd
-        |> List.map fst
-        |> String.join " "
-        |> Html.Attributes.class
 
 
 listFirstOf : (a -> Bool) -> List a -> Maybe a
@@ -62,7 +53,7 @@ listFirstOf pred list =
             Nothing
 
 
-getStationFromUid : Maybe Uid -> RenderParams -> Maybe Station
+getStationFromUid : Maybe Uid -> State -> Maybe Station
 getStationFromUid maybeUid params =
     let findMatching uid station =
             station.uid == uid
@@ -79,7 +70,7 @@ refreshButton params =
                 ("refresh_button", True),
                 ("no-flex", not params.flexSupported)
             ],
-            onClick params.refreshChannel ()
+            onClick Refresh
         ]
         [
             Html.img
@@ -92,7 +83,7 @@ refreshButton params =
                     height 15
                 ]
                 [],
-            Html.text (makePrettyTime params.updateTime)
+            Html.text (makePrettyTime (params.updateTime |> Maybe.withDefault (Date.fromTime 0)))
         ]
 
 
@@ -108,7 +99,7 @@ renderHeader params =
         ]
 
 
-renderStation : RenderParams -> Station -> Html
+renderStation : State -> Station -> Html Action
 renderStation params station =
     let containerClasses =
             classList [
@@ -157,7 +148,7 @@ renderStation params station =
                 Html.div
                     [ 
                         containerClasses,
-                        onClick params.actionChannel (ViewMap station.uid)
+                        onClick (ViewMap station.uid)
                     ]
                     [ leftDiv, rightDiv ]
             ]
@@ -169,7 +160,7 @@ renderStations params =
         (List.map (renderStation params) params.stations)
 
 
-renderSpinner : Html
+renderSpinner : Html a
 renderSpinner =
     Html.div
         [ class "spinner" ]
@@ -218,7 +209,7 @@ renderStationView params station =
                     Html.button
                         [
                             class "back_button",
-                            onClick params.actionChannel ViewList
+                            onClick ViewList
                         ]
                         [],
                     Html.img
@@ -249,14 +240,14 @@ renderStationView params station =
 
 
 renderHtml params =
-    case getStationFromUid params.state.stationView params of
+    case getStationFromUid params.stationView params of
         Nothing ->
             renderStationList params
         Just station ->
             renderStationView params station
 
 
-render : RenderParams -> Html
+render : State -> Html Action
 render params =
     if List.isEmpty params.stations
         then renderSpinner
