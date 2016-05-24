@@ -310,7 +310,7 @@ bubiRadar.ports.stationXmlOut.subscribe(function(xmlString) {
 			lng: item.getAttribute('lng'),
 			unique_name: item.getAttribute('name'),
 			num_bikes: item.getAttribute('bikes'),
-			max_bikes: item.getAttribute('bike_racks'),
+			max_bikes: item.getAttribute('bike_racks') || "0",
 		});
 	}
 
