@@ -125,24 +125,6 @@ getBubiData =
         Date.now
 
 
-
---main =
---    let state = Signal.foldp updateState initialState actionMailbox.signal
---        stations = Signal.map2 makeStationList stationXmlIn userLocation
---        updateTime = Signal.map (Date.fromTime << fst) (Time.timestamp stations)
---        renderParams =
---            (RenderParams actionMailbox.address refreshMailbox.address)
---                <~ state
---                ~ stations
---                ~ userLocation
---                ~ updateTime
---                ~ waitingForData.signal
---                ~ flexSupported
---                ~ windowDimensions
---    in
---        Signal.map HtmlRender.render renderParams
-
-
 init : Flags -> ( State, Cmd Action )
 init flags =
     { flexSupported = flags.flexSupported
