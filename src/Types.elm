@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Date exposing (Date)
+import Geolocation
 
 type alias Uid = String
 
@@ -47,5 +48,5 @@ type Action
     | NoOp
     | BubiData String
     | StationsData (List StationXml)
-    | UserLocation Location
+    | UserLocation Geolocation.Location
     | UpdateTime Date

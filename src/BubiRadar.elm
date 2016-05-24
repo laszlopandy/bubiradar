@@ -1,6 +1,7 @@
 port module Main exposing (main)
 
 import Date
+import Geolocation
 import Html exposing (Html)
 import Html.App
 import Http
@@ -16,12 +17,10 @@ import HtmlRender
 import Types exposing (Location, Station, StationXml, State, Meters, Uid, Action(..))
 
 {- Inward ports -}
-port userLocation : (Location -> msg) -> Sub msg
 port stationXmlIn : (List StationXml -> msg) -> Sub msg
 port windowDimensions : ((Int, Int) -> msg) -> Sub msg
 {- Outward ports -}
 port stationXmlOut : String -> Cmd msg
-port userLocationRequest : () -> Cmd msg
 
 
 map2 : (a -> b -> c) -> Result e a -> Result e b -> Result e c
@@ -142,7 +141,7 @@ init flags =
         windowDimensions = flags.windowDimensions
     } ! [
         Task.perform (\_ -> NoOp) BubiData getBubiData,
-        userLocationRequest ()
+        Task.perform (\_ -> NoOp) UserLocation Geolocation.now
     ]
 
 setUpdateTime : Cmd Action
@@ -169,13 +168,15 @@ update action state =
             } ! [
                 setUpdateTime
             ]
-        UserLocation location ->
-            { state |
-                userLocation = Just location,
-                stations = updateStationList state.stations location
-            } ! [
-                setUpdateTime
-            ]
+        UserLocation geolocation ->
+            let location = { lat = geolocation.latitude, lng = geolocation.longitude }
+            in
+                { state |
+                    userLocation = Just location,
+                    stations = updateStationList state.stations location
+                } ! [
+                    setUpdateTime
+                ]
         UpdateTime date ->
             { state |
                 updateTime = Just date
@@ -198,8 +199,7 @@ update action state =
 subscriptions : State -> Sub Action
 subscriptions state =
     Sub.batch [
-        stationXmlIn StationsData,
-        userLocation UserLocation
+        stationXmlIn StationsData
     ]
 
 main =
