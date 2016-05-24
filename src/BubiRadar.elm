@@ -1,6 +1,6 @@
 port module Main exposing (main)
 
-import Date
+import Date exposing (Date)
 import Geolocation
 import Html exposing (Html)
 import Html.App
@@ -98,9 +98,12 @@ makeStationList xmlList loc =
                 updateStationList list userLocation
 
 
-getBubiData : Task Http.Error String
+getBubiData : Task Http.Error (String, Date)
 getBubiData =
-    Http.getString "https://nextbike.net/maps/nextbike-live.xml?domains=mb"
+    Task.map2
+        (,)
+        (Http.getString "https://nextbike.net/maps/nextbike-live.xml?domains=mb")
+        Date.now
 
 --main =
 --    let state = Signal.foldp updateState initialState actionMailbox.signal
@@ -130,12 +133,15 @@ init flags =
         windowDimensions = flags.windowDimensions
     } ! [
         Task.perform (\_ -> NoOp) BubiData getBubiData,
-        Task.perform (\_ -> NoOp) UserLocation Geolocation.now
+        Task.perform (\_ -> NoOp) UserLocation getUserLocationWithDate
     ]
 
-setUpdateTime : Cmd Action
-setUpdateTime =
-    Task.perform (\_ -> NoOp) UpdateTime Date.now
+getUserLocationWithDate : Task Geolocation.Error (Geolocation.Location, Date)
+getUserLocationWithDate =
+    Task.map2
+        (,)
+        Geolocation.now
+        Date.now
 
 update : Action -> State -> (State, Cmd Action)
 update action state =
@@ -154,22 +160,15 @@ update action state =
         StationsData list ->
             { state |
                 stations = makeStationList list state.userLocation
-            } ! [
-                setUpdateTime
-            ]
-        UserLocation geolocation ->
+            } ! []
+        UserLocation (geolocation, date) ->
             let location = { lat = geolocation.latitude, lng = geolocation.longitude }
             in
                 { state |
                     userLocation = Just location,
+                    updateTime = Just date,
                     stations = updateStationList state.stations location
-                } ! [
-                    setUpdateTime
-                ]
-        UpdateTime date ->
-            { state |
-                updateTime = Just date
-            } ! []
+                } ! []
 
         Refresh ->
             { state |
@@ -177,9 +176,10 @@ update action state =
             } ! [
                 Task.perform (\_ -> NoOp) BubiData getBubiData
             ]
-        BubiData data ->
+        BubiData (data, date) ->
             { state |
-                waitingForData = False
+                waitingForData = False,
+                updateTime = Just date
             } ! [
                 stationXmlOut data
             ]

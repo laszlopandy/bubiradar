@@ -46,7 +46,6 @@ type Action
     | ViewList
     | Refresh
     | NoOp
-    | BubiData String
+    | BubiData (String, Date)
     | StationsData (List StationXml)
-    | UserLocation Geolocation.Location
-    | UpdateTime Date
+    | UserLocation (Geolocation.Location, Date)
