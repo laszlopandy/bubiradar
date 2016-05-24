@@ -74,10 +74,11 @@ makeStation xml =
 
 calcDistance : Location -> Location -> Meters
 calcDistance a b =
-    let cosDeg = cos << degrees
+    let aLat = cos (degrees a.lat)
+        bLat = cos (degrees b.lat)
         dLat = sin <| (degrees (b.lat - a.lat)) / 2
         dLng = sin <| (degrees (b.lng - a.lng)) / 2
-        x = (dLat * dLat) + (cosDeg a.lat * cosDeg b.lat * dLng * dLng)
+        x = (dLat * dLat) + (aLat * bLat * dLng * dLng)
         radius = 6371  -- Radius of the earth in km
         distKm = radius * 2 * (atan2 (sqrt x) (sqrt 1-x))
     in
