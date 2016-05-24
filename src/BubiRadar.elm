@@ -23,18 +23,9 @@ port windowDimensions : ((Int, Int) -> msg) -> Sub msg
 port stationXmlOut : String -> Cmd msg
 
 
-map2 : (a -> b -> c) -> Result e a -> Result e b -> Result e c
-map2 f a b =
-    Result.map f a `Result.andThen` (\x -> Result.map x b)
-
-map3 : (a -> b -> c -> d) -> Result e a -> Result e b -> Result e c -> Result e d
-map3 f a b c =
-    map2 f a b `Result.andThen` (\x -> Result.map x c)
-
-
 makeLocation : String -> String -> Result String Location
 makeLocation lat lng =
-    map2
+    Result.map2
         Location
         (String.toFloat lat)
         (String.toFloat lng)
@@ -65,7 +56,7 @@ makeStation xml =
                 distance = Nothing
             }
     in
-        map3
+        Result.map3
             makeRecord
             (String.toInt xml.num_bikes)
             (String.toInt xml.max_bikes)
