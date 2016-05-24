@@ -64,30 +64,36 @@ makeStation xml =
 
 calcDistance : Location -> Location -> Meters
 calcDistance a b =
+    round (greatCircleDistance a b)
+
+
+type alias Coords a =
+    { a | latitude : Float, longitude : Float }
+
+
+greatCircleDistance : Coords a -> Coords a -> Float
+greatCircleDistance a b =
     let
         aLat =
-            cos (degrees a.lat)
+            cos <| degrees a.latitude
 
         bLat =
-            cos (degrees b.lat)
+            cos <| degrees b.latitude
 
         dLat =
-            sin <| (degrees (b.lat - a.lat)) / 2
+            sin <| (degrees (b.latitude - a.latitude)) / 2
 
         dLng =
-            sin <| (degrees (b.lng - a.lng)) / 2
+            sin <| (degrees (b.longitude - a.longitude)) / 2
 
         x =
             (dLat * dLat) + (aLat * bLat * dLng * dLng)
 
-        -- Radius of the earth in km
+        -- Radius of the earth in meters
         radius =
-            6371
-
-        distKm =
-            radius * 2 * (atan2 (sqrt x) (sqrt 1 - x))
+            6371 * 1000
     in
-        round (distKm * 1000)
+        radius * 2 * (atan2 (sqrt x) (sqrt 1 - x))
 
 
 updateStationDistance : Location -> Station -> Station
@@ -174,7 +180,7 @@ update action state =
         UserLocation ( geolocation, date ) ->
             let
                 location =
-                    { lat = geolocation.latitude, lng = geolocation.longitude }
+                    { latitude = geolocation.latitude, longitude = geolocation.longitude }
             in
                 { state
                     | userLocation = Just location

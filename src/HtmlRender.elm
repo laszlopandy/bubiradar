@@ -193,7 +193,7 @@ renderStationList params =
 renderStationView params station =
     let
         locationToString l =
-            toString l.lat ++ "," ++ toString l.lng
+            toString l.latitude ++ "," ++ toString l.longitude
 
         mapOrigin =
             Maybe.map locationToString params.userLocation |> Maybe.withDefault "Budapest"

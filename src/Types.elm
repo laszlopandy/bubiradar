@@ -13,8 +13,8 @@ type alias Meters =
 
 
 type alias Location =
-    { lat : Float
-    , lng : Float
+    { latitude : Float
+    , longitude : Float
     }
 
 
