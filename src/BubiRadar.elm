@@ -18,7 +18,6 @@ import Types exposing (Location, Station, StationXml, State, Meters, Uid, Action
 
 {- Inward ports -}
 port stationXmlIn : (List StationXml -> msg) -> Sub msg
-port windowDimensions : ((Int, Int) -> msg) -> Sub msg
 {- Outward ports -}
 port stationXmlOut : String -> Cmd msg
 
