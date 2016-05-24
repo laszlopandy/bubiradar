@@ -16,9 +16,7 @@ import Time
 import HtmlRender
 import Types exposing (Location, Station, StationXml, State, Meters, Uid, Action(..))
 
-{- Inward ports -}
 port stationXmlIn : (List StationXml -> msg) -> Sub msg
-{- Outward ports -}
 port stationXmlOut : String -> Cmd msg
 
 
