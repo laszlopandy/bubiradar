@@ -1,7 +1,7 @@
 module Types exposing (..)
 
 import Date exposing (Date)
-import Geolocation
+import Geolocation exposing (Location)
 
 
 type alias Uid =
@@ -10,12 +10,6 @@ type alias Uid =
 
 type alias Meters =
     Int
-
-
-type alias Location =
-    { latitude : Float
-    , longitude : Float
-    }
 
 
 type alias Station =

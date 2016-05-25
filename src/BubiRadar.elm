@@ -1,7 +1,7 @@
 port module Main exposing (main)
 
 import Date exposing (Date)
-import Geolocation
+import Geolocation exposing (Location)
 import Html exposing (Html)
 import Html.App
 import Http
@@ -13,7 +13,7 @@ import String
 import Task exposing (Task)
 import Time
 import HtmlRender
-import Types exposing (Location, Station, StationXml, State, Meters, Uid, Action(..))
+import Types exposing (Station, StationXml, State, Meters, Uid, Action(..))
 
 
 port stationXmlIn : (List StationXml -> msg) -> Sub msg
@@ -24,7 +24,7 @@ port stationXmlOut : String -> Cmd msg
 
 makeLocation : String -> String -> Result String Location
 makeLocation lat lng =
-    Result.map2 Location
+    Result.map2 (\lat lng -> Location lat lng 0 Nothing Nothing 0)
         (String.toFloat lat)
         (String.toFloat lng)
 
@@ -67,11 +67,7 @@ calcDistance a b =
     round (greatCircleDistance a b)
 
 
-type alias Coords a =
-    { a | latitude : Float, longitude : Float }
-
-
-greatCircleDistance : Coords a -> Coords a -> Float
+greatCircleDistance : Location -> Location -> Float
 greatCircleDistance a b =
     let
         aLat =
@@ -177,17 +173,13 @@ update action state =
             }
                 ! []
 
-        UserLocation ( geolocation, date ) ->
-            let
-                location =
-                    { latitude = geolocation.latitude, longitude = geolocation.longitude }
-            in
-                { state
-                    | userLocation = Just location
-                    , updateTime = Just date
-                    , stations = updateStationList state.stations location
-                }
-                    ! []
+        UserLocation ( location, date ) ->
+            { state
+                | userLocation = Just location
+                , updateTime = Just date
+                , stations = updateStationList state.stations location
+            }
+                ! []
 
         Refresh ->
             { state
